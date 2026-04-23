@@ -1,0 +1,17 @@
+{
+  "name": "Iosandros — Caeto's Player Guide",
+  "short_name": "Iosandros",
+  "description": "Caeto Antulken's player guide for the Iosandros D&D campaign. HP, focus, history, kingdoms, notes.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#13110d",
+  "theme_color": "#13110d",
+  "icons": [
+    { "src": "./icons/icon-192.png",           "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png",           "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-maskable-512.png",  "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "./icons/icon-maskable-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "maskable" }
+  ]
+}

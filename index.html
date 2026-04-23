@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Iosandros — Caeto's Player Guide</title>
+<meta name="description" content="Interactive player guide for Caeto Antulken — Campaign 1, The Realm of Iosandros." />
+
+<!-- PWA: web manifest + theme -->
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#13110d" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#f5efe0" media="(prefers-color-scheme: light)" />
+
+<!-- PWA: iOS home-screen app -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Iosandros" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="shell">
+
+<!-- ============== TOP BAR ============== -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand" aria-label="Caeto Antulken">
+      <svg width="22" height="22" viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" stroke-width="3"/>
+        <circle cx="50" cy="50" r="26" fill="none" stroke="currentColor" stroke-width="2"/>
+        <circle cx="50" cy="50" r="8" fill="currentColor"/>
+        <path d="M50 6 L50 20 M50 80 L50 94 M6 50 L20 50 M80 50 L94 50" stroke="currentColor" stroke-width="2" fill="none"/>
+      </svg>
+      <span>IOSANDROS</span>
+      <span class="brand-divider"></span>
+      <span class="brand-name">Caeto Antulken</span>
+    </div>
+
+    <div class="tracker-strip" aria-label="Quick status">
+      <div class="tracker-pod">
+        <strong>HP</strong>
+        <span class="value hp" id="topHp">28 / 28</span>
+      </div>
+      <div class="tracker-pod">
+        <strong>FP</strong>
+        <span class="value fp" id="topFp">4 / 4</span>
+      </div>
+      <div class="tracker-pod">
+        <strong>Ring</strong>
+        <span class="value ring" id="topRing">3 / 3</span>
+      </div>
+    </div>
+
+    <div class="search-wrap">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="search" class="search-input" id="globalSearch" placeholder="Search kingdoms, history, contacts…" aria-label="Global search" />
+      <div class="search-results" id="searchResults" role="listbox"></div>
+    </div>
+
+    <div class="topbar-actions">
+      <div class="sync-status-group" id="syncStatusGroup" title="Cloud sync" role="button" tabindex="0" aria-label="Cloud sync status">
+        <span class="sync-status-label" id="syncStatusLabel">Local</span>
+        <button class="icon-btn" id="syncToggle" aria-label="Cloud sync">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+          <span class="sync-dot" id="syncDot" aria-hidden="true"></span>
+        </button>
+      </div>
+      <button class="icon-btn" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============== TABS ============== -->
+  <nav class="tabs" role="tablist" aria-label="Guide sections">
+    <div class="tabs-inner">
+      <button class="tab" role="tab" data-tab="character" aria-selected="true">Character</button>
+      <button class="tab" role="tab" data-tab="playbook">Playbook</button>
+      <button class="tab" role="tab" data-tab="trackers">Play Trackers</button>
+      <button class="tab" role="tab" data-tab="kingdoms">13 Kingdoms</button>
+      <button class="tab" role="tab" data-tab="history">History</button>
+      <button class="tab" role="tab" data-tab="calendar">Calendar</button>
+      <button class="tab" role="tab" data-tab="people">People</button>
+      <button class="tab" role="tab" data-tab="map">Map</button>
+      <button class="tab" role="tab" data-tab="tweaks">Tweaks</button>
+      <button class="tab" role="tab" data-tab="other-info">Other Info</button>
+    </div>
+  </nav>
+</header>
+
+<main>
+
+<!-- ============== CHARACTER ============== -->
+<section class="panel active" id="panel-character" role="tabpanel">
+  <header class="section-header">
+    <div>
+      <div class="eyebrow">Dossier</div>
+      <h1>Character Sheet</h1>
+    </div>
+  </header>
+
+  <div class="hero-sheet">
+    <aside class="hero-card">
+      <div class="name">Caeto Antulken</div>
+      <div class="title-line">Level 4 Monk · Way of the Intelligent Hand · Rewarded</div>
+      <dl class="hero-stats">
+        <div><dt>AC</dt><dd id="heroAC">13 <span class="muted small">(10+DEX+WIS)</span></dd></div>
+        <div><dt>HP</dt><dd id="heroHP">28 / 28</dd></div>
+        <div><dt>Age</dt><dd>34 <span class="muted small">(b. 1190 SE)</span></dd></div>
+        <div><dt>Build</dt><dd>5'10" · 160 lbs</dd></div>
+        <div><dt>Origin</dt><dd>Splint-Water, Osmere</dd></div>
+        <div><dt>Base</dt><dd>The Pendant Coast</dd></div>
+      </dl>
+    </aside>
+
+    <section class="card">
+      <h2 class="card-title">Attributes</h2>
+      <div class="attr-grid" id="attrGrid"></div>
+    </section>
+  </div>
+
+  <div class="grid grid-3 skills-grid-wrap">
+    <section class="card">
+      <h2 class="card-title">DEX Skills</h2>
+      <div id="skillsDEX"></div>
+      <h2 class="card-title mt-6">STR Skills</h2>
+      <div id="skillsSTR"></div>
+    </section>
+    <section class="card">
+      <h2 class="card-title">INT Skills</h2>
+      <div id="skillsINT"></div>
+      <h2 class="card-title mt-6">CHA Skills</h2>
+      <div id="skillsCHA"></div>
+    </section>
+    <section class="card wis-side">
+      <h2 class="card-title">WIS Skills</h2>
+      <div id="skillsWIS"></div>
+    </section>
+  </div>
+
+  <div class="flourish"></div>
+
+  <div class="grid grid-2">
+    <section class="card">
+      <h2 class="card-title">Weapons &amp; Attacks</h2>
+      <div class="table-wrap">
+        <table class="stat-table">
+          <thead><tr><th>Weapon</th><th>Bonus / DC</th><th>Damage</th></tr></thead>
+          <tbody id="weaponsTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">Monk Abilities</h2>
+      <div class="table-wrap">
+        <table class="stat-table">
+          <thead><tr><th>Technique</th><th>Cost</th><th>Effect</th></tr></thead>
+          <tbody id="spellsTbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="flourish"></div>
+
+  <div class="grid grid-2">
+    <section class="card">
+      <h2 class="card-title">Traits &amp; Abilities</h2>
+      <ul class="labeled-list" id="traitsList"></ul>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">Equipment &amp; Inventory</h2>
+      <ul class="labeled-list" id="equipmentList"></ul>
+      <div class="flourish"></div>
+      <h2 class="card-title">Backstory Benefits</h2>
+      <ul class="labeled-list" id="benefitsList"></ul>
+      <div class="flourish"></div>
+      <h2 class="card-title">Jeffrey</h2>
+      <p class="muted" id="jeffText"></p>
+      <div class="flourish"></div>
+      <h2 class="card-title">The Discipline</h2>
+      <p class="muted italic" id="disciplineText"></p>
+    </section>
+  </div>
+</section>
+
+<!-- ============== PLAYBOOK ============== -->
+<section class="panel" id="panel-playbook" role="tabpanel">
+  <header class="section-header">
+    <div>
+      <div class="eyebrow">For first-time players</div>
+      <h1>The Playbook</h1>
+      <p>Plain-English help for playing Caeto. Use the Turn Coach when you don't know what to do, the Situation Helper when things get weird, and the Glossary when someone drops a term you don't know.</p>
+    </div>
+  </header>
+
+  <div class="playbook-subtabs" role="tablist" aria-label="Playbook sections">
+    <button class="pb-subtab active" data-sub="turn" role="tab" aria-selected="true">Turn Coach</button>
+    <button class="pb-subtab" data-sub="situations" role="tab">Situation Helper</button>
+    <button class="pb-subtab" data-sub="glossary" role="tab">Glossary</button>
+  </div>
+
+  <!-- Turn coach -->
+  <div class="pb-panel active" id="pb-turn">
+    <div class="pb-intro" id="pbTurnIntro"></div>
+
+    <div class="pb-slot-grid">
+      <section class="card pb-slot" data-slot="Action">
+        <h2 class="card-title"><span class="slot-tag action">ACTION</span> What you can DO</h2>
+        <p class="muted small">The main thing on your turn. One per turn.</p>
+        <div class="pb-card-list" id="pbActions"></div>
+      </section>
+      <section class="card pb-slot" data-slot="Bonus Action">
+        <h2 class="card-title"><span class="slot-tag bonus">BONUS</span> Extra moves</h2>
+        <p class="muted small">A smaller extra action. One per turn. Monks use these constantly.</p>
+        <div class="pb-card-list" id="pbBonus"></div>
+      </section>
+    </div>
+
+    <div class="flourish"></div>
+
+    <div class="grid grid-2">
+      <section class="card">
+        <h2 class="card-title"><span class="slot-tag reaction">REACTION</span> When others act</h2>
+        <p class="muted small">Off-turn responses to triggers. One per round.</p>
+        <div class="pb-card-list" id="pbReactions"></div>
+      </section>
+      <section class="card">
+        <h2 class="card-title"><span class="slot-tag movement">MOVEMENT</span> Getting around</h2>
+        <p id="pbMovement" class="muted"></p>
+        <div class="flourish"></div>
+        <h2 class="card-title">The Monk bonus-strike rule</h2>
+        <p id="pbBonusNote" class="muted"></p>
+      </section>
+    </div>
+  </div>
+
+  <!-- Situation helper -->
+  <div class="pb-panel" id="pb-situations">
+    <div class="sit-grid" id="sitGrid"></div>
+  </div>
+
+  <!-- Glossary -->
+  <div class="pb-panel" id="pb-glossary">
+    <div class="glossary-controls">
+      <input type="search" class="search-input" id="glossFilter" placeholder="Search terms…" aria-label="Filter glossary" />
+      <div class="gloss-tabs">
+        <button class="chip active" data-gloss="all">All</button>
+        <button class="chip" data-gloss="D&amp;D">D&amp;D</button>
+        <button class="chip" data-gloss="Iosandros">Iosandros</button>
+      </div>
+    </div>
+    <div class="glossary-list" id="glossList"></div>
+  </div>
+</section>
+
+<!-- ============== TRACKERS ============== -->
+<section class="panel" id="panel-trackers" role="tabpanel">
+  <header class="section-header">
+    <div>
+      <div class="eyebrow">At the table</div>
+      <h1>Play Trackers</h1>
+      <p>Live counters for hit points, focus, the Ring of Discernment, rest cycles, and your negotiation budget. Everything saves locally between sessions.</p>
+    </div>
+    <button class="btn small" id="resetAll" title="Reset all trackers">Reset All</button>
+  </header>
+
+  <div class="tracker-main-grid">
+    <!-- HP -->
+    <section class="card">
+      <h2 class="card-title">Hit Points</h2>
+      <div class="big-value hp" id="hpDisplay">
+        <span id="hpCurrent">28</span><span class="slash">/</span><span class="max" id="hpMax">28</span>
+      </div>
+      <div class="btn-row">
+        <div class="step-input" role="group" aria-label="Adjust damage">
+          <button data-hp="-10" aria-label="-10">−10</button>
+          <button data-hp="-5" aria-label="-5">−5</button>
+          <input type="number" id="hpDelta" value="1" min="1" />
+          <button data-hp="+5" aria-label="+5">+5</button>
+          <button data-hp="+10" aria-label="+10">+10</button>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn danger" id="hpDamage">Take Damage</button>
+        <button class="btn" id="hpHeal">Heal</button>
+        <button class="btn small" id="hpFull" title="Restore to max">Full HP</button>
+      </div>
+      <div class="flourish"></div>
+      <div class="btn-row">
+        <button class="btn" id="shortRest">Short Rest</button>
+        <button class="btn primary" id="longRest">Long Rest</button>
+      </div>
+      <p class="muted small mt-4" style="text-align:center">Long Rest: restore HP, FP, and Ring uses. Short Rest: restore FP only.</p>
+    </section>
+
+    <!-- Focus Points -->
+    <section class="card">
+      <h2 class="card-title">Focus Points</h2>
+      <div class="big-value fp">
+        <span id="fpCurrent">4</span><span class="slash">/</span><span class="max">4</span>
+      </div>
+      <div class="fp-pips" id="fpPips" aria-label="Focus points — click to spend or regain"></div>
+      <div class="btn-row">
+        <button class="btn" id="fpSpend">Spend 1</button>
+        <button class="btn primary" id="fpInit" title="Uncanny Metabolism — on initiative, regain all FP. Once per long rest.">Initiative: Regain All</button>
+      </div>
+      <p class="muted small mt-4" style="text-align:center">
+        <span id="metaLabel">Uncanny Metabolism available this long rest.</span>
+      </p>
+    </section>
+
+    <!-- Ring of Discernment -->
+    <section class="card">
+      <h2 class="card-title">Ring of Discernment</h2>
+      <div class="big-value ring">
+        <span id="ringCurrent">3</span><span class="slash">/</span><span class="max">3</span>
+      </div>
+      <div class="ring-dots" id="ringDots" aria-label="Ring uses — click to mark used"></div>
+      <div class="btn-row">
+        <button class="btn danger" id="ringUse">Use (cost 7 HP)</button>
+        <button class="btn small" id="ringReset">Reset Uses</button>
+      </div>
+      <p class="muted small mt-4" style="text-align:center">
+        Cold: <em>deception</em>. Warm: <em>truth</em>. Resets on Long Rest.
+      </p>
+    </section>
+
+    <!-- Negotiation Budget -->
+    <section class="card">
+      <h2 class="card-title">Negotiation Budget</h2>
+      <p class="muted small">Resources reset each time you travel to a new Kingdom. Current Kingdom:</p>
+      <select id="budgetKingdom" class="search-input mt-4" style="padding-left:0.75rem"></select>
+      <div class="mt-6" id="budgetList"></div>
+      <div class="btn-row mt-4">
+        <button class="btn" id="budgetReset">Reset Budget (Travel)</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="flourish"></div>
+
+  <section class="card">
+    <h2 class="card-title">Session Notes</h2>
+    <textarea class="notes-area" id="sessionNotes" placeholder="Scribble everything worth remembering…"></textarea>
+  </section>
+</section>
+
+<!-- ============== KINGDOMS ============== -->
+<section class="panel" id="panel-kingdoms" role="tabpanel">
+  <header class="section-header">
+    <div>
+      <div class="eyebrow">The Realm</div>
+      <h1>The 13 Kingdoms &amp; Territories</h1>
+      <p>Click a kingdom to toggle it as one of your <b>six History/Culture advantage</b> picks. Your choices persist across sessions.</p>
+    </div>
+    <div class="advantage-counter">Advantage picks: <b id="advCount">0</b> / 6</div>
+  </header>
+
+  <div class="filter-row" id="kingdomFilters"></div>
+
+  <h2 class="card-title" style="letter-spacing: 0.2em; margin-bottom: var(--space-4)">Sovereign Kingdoms</h2>
+  <div class="kingdom-grid" id="kingdomGrid"></div>
+
+  <div class="flourish-ornate">✦ ✦ ✦</div>
+
+  <h2 class="card-title" style="letter-spacing: 0.2em; margin-bottom: var(--space-4)">The Territories</h2>
+  <div class="kingdom-grid" id="territoryGrid"></div>
+</section>
+
+<!-- ============== HISTORY ============== -->
+<section class="panel" id="panel-history" role="tabpanel">
+  <header class="section-header">
+    <div>
+      <div class="eyebrow">Since the Separation</div>
+      <h1>Historical Timeline</h1>
+      <p>From 0 SE to the present day of 1224 SE. Every Era of Peace, every Bloody War, every fallen city — and the Campaign beginning you're living through right now.</p>
+    </div>
+    <input type="search" class="search-input" id="historyFilter" style="max-width: 260px" placeholder="Filter history…" aria-label="Filter history" />
+  </header>
+
+  <div class="timeline" id="timeline"></div>
+</section>
+
+<!-- ============== OTHER INFO ============== -->
+<section class="panel" id="panel-other-info" role="tabpanel">
+  <header class="section-header">
+    <div>
+      <div class="eyebrow">Lore &amp; Reference</div>
+      <h1>Other Info</h1>
+      <p class="muted">Supplementary lore, references, and notes. More sections will be added over time.</p>
+    </div>
+  </header>
+
+  <!-- ~~~~~~~ Section: The Seven Prophecies ~~~~~~~ -->
+  <section class="other-info-section" id="section-prophecies">
+    <header class="other-info-heading">
+      <div class="eyebrow">Eternium</div>
+      <h2>The Seven Prophecies</h2>
+      <p id="prophDoctrine" class="muted"></p>
+    </header>
+
+    <div class="proph-doctrine">The Doctrine</div>
+    <div class="proph-overarching" id="prophOverarching"></div>
+    <p class="proph-order-note" id="prophOrderNote"></p>
+
+    <div class="flourish"></div>
+
+    <div class="proph-grid" id="prophGrid"></div>
+  </section>
+
+  <!-- Future sections go here. Each wraps in <section class="other-info-section"> -->
+
+</section>
+
+<!-- ============== CALENDAR ============== -->
+<section class="panel" id="panel-calendar" role="tabpanel">
+  <header class="section-header">
+    <div>
+      <div class="eyebrow">The Iosandran Calendar</div>
+      <h1>13 Months · 365 Days</h1>
+      <p>Click a month then a day to set the in-game date. Season markers are highlighted.</p>
+    </div>
+  </header>
+
+  <div class="calendar-wrap">
+    <div>
+      <div class="current-date-display">
+        <div class="eyebrow">In-game date</div>
+        <div class="d-date" id="currentDate">1 Primar, 1224 SE</div>
+        <div class="d-season" id="currentSeason">—</div>
+        <div class="btn-row mt-4">
+          <button class="btn small" id="dateBack">−1 Day</button>
+          <button class="btn small" id="dateFwd">+1 Day</button>
+          <label class="btn small" style="display:inline-flex; align-items:center; gap:var(--space-2); cursor:text">Year <input type="number" id="currentYear" style="width:6ch; background:transparent; border:none; color:var(--color-text); font-family:var(--font-display); font-weight:600; text-align:center" value="1224" aria-label="Year" /></label>
+        </div>
+      </div>
+
+      <section class="card mt-6">
+        <h2 class="card-title">Months</h2>
+        <div class="month-wheel" id="monthWheel"></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2 class="card-title">Days in <span id="daysMonthName">Primar</span></h2>
+      <div class="day-grid" id="dayGrid"></div>
+    </section>
+  </div>
+
+  <div class="flourish"></div>
+
+  <section class="card">
+    <h2 class="card-title">Events on <span id="eventsDate">—</span></h2>
+    <p class="muted small">Log what happened on the selected day. Events are tied to the exact date and show up here whenever that date is selected.</p>
+    <div class="event-input-row">
+      <input type="text" id="eventInput" placeholder="e.g. Duke of Esmireth dies. Party heads north." aria-label="New event" />
+      <button class="btn primary" id="eventAdd">Add event</button>
+    </div>
+    <ul class="event-list" id="eventList"></ul>
+    <p class="muted small" id="eventEmpty" hidden>No events logged for this day.</p>
+  </section>
+
+  <section class="card mt-6">
+    <h2 class="card-title">Upcoming / Recent</h2>
+    <p class="muted small">Everything you've logged, sorted by in-game date.</p>
+    <ul class="event-list" id="eventAllList"></ul>
+  </section>
+</section>
+
+<!-- ============== PEOPLE (Party/NPCs + Connections in one tab) ============== -->
+<section class="panel" id="panel-people" role="tabpanel">
+  <nav class="subtabs" role="tablist" aria-label="People sections">
+    <button class="subtab" data-subtab="party" aria-selected="true">Party &amp; Campaign NPCs</button>
+    <button class="subtab" data-subtab="connections" aria-selected="false">Connections &amp; Employees</button>
+  </nav>
+
+  <!-- Sub-panel: Party & NPCs -->
+  <div class="subpanel active" id="subpanel-party" role="tabpanel">
+    <header class="section-header">
+      <div>
+        <div class="eyebrow">As you meet them</div>
+        <h1>Party &amp; Campaign NPCs</h1>
+        <p>People you've met through the campaign — party members, NPCs, enemies, allies. Click any card to edit. Saved to the cloud.</p>
+      </div>
+      <div class="btn-row">
+        <input type="search" class="search-input" id="partyFilter" style="max-width: 260px" placeholder="Filter…" aria-label="Filter party and NPCs" />
+        <button class="btn primary" id="partyAdd">+ Add</button>
+      </div>
+    </header>
+
+    <div class="party-groups" id="partyGroups"></div>
+  </div>
+
+  <!-- Sub-panel: Connections -->
+  <div class="subpanel" id="subpanel-connections" role="tabpanel">
+    <header class="section-header">
+      <div>
+        <div class="eyebrow">The Network</div>
+        <h1>Connections &amp; Employees</h1>
+        <p>Elites who have purchased — and now quietly help move — illegal Dead-World magical artifacts. And the crew of Golden Basin Goods.</p>
+      </div>
+      <input type="search" class="search-input" id="connFilter" style="max-width: 260px" placeholder="Filter contacts…" aria-label="Filter connections" />
+    </header>
+
+    <h2 class="card-title">Connections</h2>
+    <div class="connection-grid" id="connGrid"></div>
+
+    <div class="flourish-ornate">✦ ✦ ✦</div>
+
+    <h2 class="card-title">Notable Employees</h2>
+    <div class="connection-grid" id="empGrid"></div>
+
+    <div class="flourish"></div>
+    <p class="muted italic small">Maritime note: Hired freight Captains and crews handle their own security. The sea is full of pirates, raiders, and unforgiving weather.</p>
+    <p class="muted italic small mt-4">Overland dividing line (W→E): Southern Border of Lorenthar → Northern Border of Garrondel → Northern Border of the Pendant Coast.</p>
+  </div>
+</section>
+
+<!-- Party edit dialog -->
+<div class="sync-dialog-overlay" id="partyOverlay" hidden>
+  <div class="sync-dialog" role="dialog" aria-labelledby="partyDialogTitle">
+    <div class="sync-header">
+      <h2 id="partyDialogTitle">Add / Edit</h2>
+      <button class="icon-btn" id="partyClose" aria-label="Close">×</button>
+    </div>
+    <div class="party-form">
+      <label class="party-field"><span>Name</span>
+        <input type="text" id="partyName" class="search-input" placeholder="e.g. Galith" />
+      </label>
+      <label class="party-field"><span>Role / Short description</span>
+        <input type="text" id="partyRole" class="search-input" placeholder="e.g. Justin's character, Nexhollow hunter" />
+      </label>
+      <label class="party-field"><span>Category</span>
+        <select id="partyCategory" class="search-input">
+          <option value="Party">Party member</option>
+          <option value="NPC">NPC</option>
+          <option value="Ally">Ally</option>
+          <option value="Enemy">Enemy</option>
+          <option value="Unknown">Unknown / TBD</option>
+        </select>
+      </label>
+      <label class="party-field"><span>Tags (comma-separated)</span>
+        <input type="text" id="partyTags" class="search-input" placeholder="e.g. Falcon, Inuit, Wingsuit" />
+      </label>
+      <label class="party-field"><span>Notes</span>
+        <textarea id="partyNotes" class="notes-area" style="min-height: 140px" placeholder="Anything worth remembering — appearance, quirks, session events, relationships."></textarea>
+      </label>
+      <div class="btn-row">
+        <button class="btn primary" id="partySave">Save</button>
+        <button class="btn small danger" id="partyDelete" hidden>Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MAP ============== -->
+<section class="panel" id="panel-map" role="tabpanel">
+  <header class="section-header">
+    <div>
+      <div class="eyebrow">Cartography</div>
+      <h1>The Realm of Iosandros</h1>
+      <p>Scroll or pinch to zoom, drag to pan.</p>
+    </div>
+  </header>
+
+  <div class="map-frame" id="mapFrame">
+    <img src="assets/map.jpg" alt="Map of the Realm of Iosandros" id="mapImg" />
+    <div class="map-controls">
+      <button id="mapZoomIn" aria-label="Zoom in">+</button>
+      <button id="mapZoomOut" aria-label="Zoom out">−</button>
+      <button id="mapReset" aria-label="Reset view" title="Reset view" style="font-size:0.875rem">↺</button>
+    </div>
+    <div class="map-hint">Scroll to zoom · drag to pan</div>
+  </div>
+</section>
+
+<!-- ============== TWEAKS ============== -->
+<section class="panel" id="panel-tweaks" role="tabpanel">
+  <header class="section-header">
+    <div>
+      <div class="eyebrow">For next session</div>
+      <h1>Tweaks</h1>
+      <p>Queue up small edits as you think of them (bold this, resize that, fix this typo). Saved in your browser. Next time you chat with Computer, say "check the tweaks list" and it'll work through them.</p>
+    </div>
+  </header>
+
+  <div class="grid grid-2">
+    <section class="card">
+      <h2 class="card-title">Add a tweak</h2>
+      <textarea class="notes-area" id="tweakInput" placeholder="e.g. 'Make the history filter sticky when scrolling' or 'Add a CHA save reminder somewhere'" style="min-height: 120px"></textarea>
+      <div class="btn-row mt-4">
+        <button class="btn primary" id="tweakAdd">Add to List</button>
+      </div>
+      <p class="muted small mt-4">Tip: be specific about location. "Character tab, Attributes section, save text" beats "that thing on the sheet."</p>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">Pending (<span id="tweakPendingCount">0</span>)</h2>
+      <ul class="tweak-list" id="tweakPendingList"></ul>
+      <p class="muted small" id="tweakPendingEmpty" hidden>No pending tweaks. Nice.</p>
+    </section>
+  </div>
+
+  <div class="flourish"></div>
+
+  <section class="card">
+    <h2 class="card-title">Done (<span id="tweakDoneCount">0</span>)</h2>
+    <ul class="tweak-list tweak-list-done" id="tweakDoneList"></ul>
+    <p class="muted small" id="tweakDoneEmpty" hidden>Nothing shipped yet.</p>
+    <div class="btn-row mt-4">
+      <button class="btn small danger" id="tweakClearDone">Clear done</button>
+    </div>
+  </section>
+</section>
+
+</main>
+
+<!-- ============== SYNC DIALOG ============== -->
+<div class="sync-dialog-overlay" id="syncOverlay" hidden>
+  <div class="sync-dialog" role="dialog" aria-labelledby="syncTitle">
+    <div class="sync-header">
+      <h2 id="syncTitle">Cloud Sync</h2>
+      <button class="icon-btn" id="syncClose" aria-label="Close">×</button>
+    </div>
+
+    <div class="sync-status" id="syncStatus">
+      <div class="eyebrow">Status</div>
+      <div class="s-value" id="syncStatusText">Local only (no cloud sync)</div>
+    </div>
+
+    <div class="sync-active" id="syncActiveSection" hidden>
+      <p class="muted">Your state is auto-backing up to the cloud. Use this code on any other device to load the same state:</p>
+      <div class="sync-code-box" id="syncCodeBox">—</div>
+      <div class="btn-row">
+        <button class="btn small" id="syncCopy">Copy code</button>
+        <button class="btn small danger" id="syncDisconnect">Stop syncing this device</button>
+      </div>
+      <p class="muted small" id="syncLastUpdate"></p>
+    </div>
+
+    <div class="sync-inactive" id="syncInactiveSection">
+      <div id="syncConfigMissing" hidden>
+        <div class="card sync-action-card">
+          <h3>One-time setup: connect Firebase</h3>
+          <p class="muted small">Cloud sync uses a free Firebase project. Paste your Firebase config JSON below. <a href="https://firebase.google.com/docs/web/setup#register-app" target="_blank" rel="noopener">Where do I find this?</a></p>
+          <textarea class="notes-area" id="firebaseConfigInput" placeholder='Paste the firebaseConfig object. It looks like:&#10;{&#10;  "apiKey": "...",&#10;  "authDomain": "...firebaseapp.com",&#10;  "projectId": "...",&#10;  ...&#10;}' style="min-height: 140px; font-family: var(--font-mono, monospace); font-size: 0.8125rem;"></textarea>
+          <div class="btn-row mt-4">
+            <button class="btn primary" id="firebaseConfigSave">Save &amp; connect</button>
+          </div>
+        </div>
+      </div>
+      <div id="syncConfigReady" hidden>
+        <div class="sync-actions">
+          <div class="card sync-action-card">
+            <h3>Start auto-backup</h3>
+            <p class="muted small">Creates a sync code for this device. Every change on this device auto-saves to the cloud. Losing the device won't lose your state.</p>
+            <button class="btn primary" id="syncEnable">Enable Sync</button>
+          </div>
+          <div class="card sync-action-card">
+            <h3>Load from another device</h3>
+            <p class="muted small">Enter the code from a device that already has sync enabled. Loads its state and stays in sync.</p>
+            <input type="text" class="search-input" id="syncJoinInput" placeholder="caeto-xxxxxx" aria-label="Sync code" />
+            <button class="btn" id="syncJoin">Join</button>
+          </div>
+        </div>
+        <p class="muted small mt-4"><button class="btn small" id="firebaseConfigEdit">Change Firebase project</button></p>
+      </div>
+    </div>
+
+    <div class="flourish"></div>
+    <h3 class="card-title">Manual backup</h3>
+    <p class="muted small">Downloads your current state as a JSON file you can stash anywhere (Drive, iCloud, email to yourself). Restore from an earlier backup with the upload button.</p>
+    <div class="btn-row">
+      <button class="btn small" id="syncDownload">Download Backup</button>
+      <label class="btn small" for="syncUpload" style="cursor:pointer">Upload Backup</label>
+      <input type="file" id="syncUpload" accept="application/json" style="display:none" />
+    </div>
+
+    <p class="muted small sync-msg" id="syncMsg"></p>
+  </div>
+</div>
+
+</div>
+
+<script src="data/data.js"></script>
+<script src="data/playbook.js"></script>
+<script src="js/app.js"></script>
+<script>
+// Register the service worker for offline support.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
