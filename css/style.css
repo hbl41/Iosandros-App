@@ -1929,18 +1929,18 @@ progress { width: 100%; height: 6px; }
    Additive: base padding + iOS safe-area inset. */
 .topbar { padding-top: 0; }
 .topbar-inner {
-  padding-top: calc(56px + env(safe-area-inset-top, 0px));
+  padding-top: calc(88px + env(safe-area-inset-top, 0px));
   padding-bottom: var(--space-3);
 }
 /* Installed PWA on iPhone/iPad — status bar overlaps, give extra room */
 @media (display-mode: standalone) {
   .topbar-inner {
-    padding-top: calc(60px + env(safe-area-inset-top, 44px));
+    padding-top: calc(92px + env(safe-area-inset-top, 44px));
   }
 }
 /* iPad in Safari (portrait or landscape) */
 @media (min-width: 744px) and (max-width: 1366px) {
-  .topbar-inner { padding-top: calc(72px + env(safe-area-inset-top, 0px)); }
+  .topbar-inner { padding-top: calc(104px + env(safe-area-inset-top, 0px)); }
 }
 
 /* Other Info tab — stacked lore sections */
