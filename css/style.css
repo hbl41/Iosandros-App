@@ -1925,23 +1925,22 @@ progress { width: 100%; height: 6px; }
    TWEAK BATCH 3 — People sub-tabs, more top header spacing
    ============================================================ */
 
-/* Bump the header top padding hard so there's real room above the title text.
-   Uses max() so env(safe-area-inset-top) never reduces the base padding to zero
-   (Safari returns 0 when not full-screen). */
+/* Much more breathing room at the top of the header.
+   Additive: base padding + iOS safe-area inset. */
 .topbar { padding-top: 0; }
 .topbar-inner {
-  padding-top: calc(28px + env(safe-area-inset-top, 0px));
+  padding-top: calc(56px + env(safe-area-inset-top, 0px));
   padding-bottom: var(--space-3);
 }
 /* Installed PWA on iPhone/iPad — status bar overlaps, give extra room */
 @media (display-mode: standalone) {
   .topbar-inner {
-    padding-top: calc(32px + env(safe-area-inset-top, 44px));
+    padding-top: calc(60px + env(safe-area-inset-top, 44px));
   }
 }
-/* iPad portrait in Safari */
-@media (min-width: 744px) and (max-width: 1180px) {
-  .topbar-inner { padding-top: calc(36px + env(safe-area-inset-top, 0px)); }
+/* iPad in Safari (portrait or landscape) */
+@media (min-width: 744px) and (max-width: 1366px) {
+  .topbar-inner { padding-top: calc(72px + env(safe-area-inset-top, 0px)); }
 }
 
 /* Other Info tab — stacked lore sections */
