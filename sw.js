@@ -2,7 +2,7 @@
 // Network-first for HTML (so deploys update), cache-first for static assets.
 // Skips anything that isn't same-origin.
 
-const CACHE_NAME = 'iosandros-v6';
+const CACHE_NAME = 'iosandros-v7';
 const PRECACHE = [
   './',
   './index.html',
