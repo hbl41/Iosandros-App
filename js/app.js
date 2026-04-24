@@ -1311,8 +1311,7 @@ function renderTurnCard(a, isReaction = false) {
     return el('div', { class: cls }, el('span', { class: 't-l', text: labelText }), wrap);
   };
   if (a.what) card.appendChild(withLinks('t-what', 'What', a.what));
-  if (a.when) card.appendChild(withLinks('t-when', 'When', a.when));
-  if (a.tip)  card.appendChild(withLinks('t-tip',  'Tip',  a.tip));
+  if (a.max)  card.appendChild(withLinks('t-max',  'Max',  a.max));
 
   return card;
 }

@@ -231,6 +231,12 @@ h1,h2,h3,h4,h5,h6 {
 .tracker-pod .value.fp { color: var(--color-teal); }
 .tracker-pod .value.ring { color: var(--color-primary); }
 .tracker-pod .value.low { color: var(--color-danger); }
+.tracker-pod .value.ac { color: var(--color-text); }
+.tracker-pod-static {
+  opacity: 0.85;
+  border-style: dashed;
+}
+.tracker-pod-static strong { color: var(--color-text-muted); }
 
 .icon-btn {
   width: 36px; height: 36px;
@@ -1312,43 +1318,64 @@ progress { width: 100%; height: 6px; }
 .slot-tag.reaction  { background: var(--color-primary); color: var(--color-bg); }
 .slot-tag.movement  { background: #5a6b8a; color: #fff; }
 
-/* ========== PLAYBOOK: Quick-ref strip ========== */
-.pb-quickref {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-3);
-  margin-bottom: var(--space-4);
-  background: var(--color-surface-offset);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-}
-.qr-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  text-align: center;
-}
-.qr-l {
+/* ========== PLAYBOOK: Init one-liner + slot-math brief ========== */
+.pb-init-line {
   font-family: var(--font-ui);
-  font-size: 0.625rem;
-  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-text-muted);
-  font-weight: 600;
+  padding: var(--space-2) 0;
+  margin-bottom: var(--space-2);
+  border-bottom: 1px dashed var(--color-border);
 }
-.qr-v {
+.pb-init-line strong {
   font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 700;
   color: var(--color-text);
+  font-weight: 700;
   letter-spacing: 0.02em;
+  margin: 0 1px;
 }
-@media (max-width: 600px) {
-  .pb-quickref { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .qr-v { font-size: 1rem; }
+.pb-slot-math {
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border));
+  border-radius: var(--radius-sm);
+}
+.pb-slot-math .sm-title {
+  font-family: var(--font-ui);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: var(--space-2);
+}
+.pb-slot-math .sm-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.pb-slot-math .sm-list li {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+.pb-slot-math .sm-list li .slot-tag {
+  margin-right: 6px;
+  vertical-align: baseline;
+}
+.pb-slot-math .sm-list li strong {
+  color: var(--color-text);
+  font-weight: 700;
+}
+.pb-slot-math .sm-list li em {
+  font-style: italic;
+  color: var(--color-primary);
 }
 
 /* ========== PLAYBOOK: Sticky slot legend ========== */
@@ -1435,7 +1462,7 @@ progress { width: 100%; height: 6px; }
 }
 .turn-card.is-universal .t-tldr { color: color-mix(in srgb, var(--color-text) 80%, var(--color-text-muted)); }
 
-.t-what, .t-when, .t-tip {
+.t-what, .t-max {
   font-size: 0.8125rem;
   color: var(--color-text-muted);
   line-height: 1.45;
@@ -1455,8 +1482,7 @@ progress { width: 100%; height: 6px; }
   text-transform: uppercase;
   opacity: 0.85;
 }
-.t-when .t-l { color: #7aa2a0; }
-.t-tip .t-l  { color: #c9a86b; }
+.t-max .t-l { color: #c9a86b; }
 .t-text { flex: 1; min-width: 0; }
 
 /* Movement section extras */

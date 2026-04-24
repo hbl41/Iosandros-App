@@ -18,8 +18,7 @@ window.PLAYBOOK = {
         cost: "Free",
         tldr: "d20 + INT vs AC; 1d6 bludgeoning on hit.",
         what: "Swing at someone within 5 ft. Roll d20 + INT mod (Intelligent Strikes) vs their AC. On a hit, 1d6 bludgeoning damage.",
-        when: "Your bread-and-butter. Safe, cheap, and always available.",
-        tip: "Because you're a Monk you get a FREE bonus-action unarmed strike after you take the Attack action — so a basic turn is already TWO punches."
+        max: "Triggers your FREE bonus-action Unarmed Strike — always take it. A basic Attack turn is TWO punches, no FP spent."
       },
       {
         name: "Attack — Velthar Steel Hair Needles",
@@ -28,8 +27,7 @@ window.PLAYBOOK = {
         cost: "Free",
         tldr: "+4 to hit, 1d8 piercing; climb walls without Acrobatics.",
         what: "+4 to hit, 1d8 piercing. These are your 'real' weapon. Also let you scale walls without rolling Acrobatics.",
-        when: "When 1d8 matters more than the bonus damage-type tricks of unarmed. Also when climbing/terrain is in play.",
-        tip: "Needles are piercing — good vs creatures resistant to bludgeoning (skeletons, etc.)."
+        max: "Count as Monk weapons — still triggers the free bonus-action Unarmed Strike. Use vs skeletons and anything resistant to bludgeoning."
       },
       {
         name: "Ring of Discernment",
@@ -38,8 +36,7 @@ window.PLAYBOOK = {
         cost: "7 HP · 3/day",
         tldr: "Slide ring after a statement. Cold = lie, warm = truth.",
         what: "Slide your finger on the ring; it slices you and draws blood. Cold = the last spoken statement is a lie. Warm = truth.",
-        when: "Social scenes where you strongly suspect deception — interrogations, negotiations, any time someone's story smells wrong.",
-        tip: "Resets on a Long Rest. 7 HP is a big chunk of your 28 — don't use it on trivial lies. Save it for 'is this person about to betray us?'"
+        max: "3 uses reset on Long Rest; burns 7 of your 28 HP per use. Save it for statements that actually matter."
       },
       {
         name: "Dodge",
@@ -47,8 +44,7 @@ window.PLAYBOOK = {
         source: "universal",
         cost: "Free",
         tldr: "Attackers have disadvantage; advantage on DEX saves until next turn.",
-        what: "Attackers against you have disadvantage; you have advantage on DEX saves until your next turn.",
-        when: "You're out of Focus and need to survive a round. Also strong when you're the 'tank' distracting an enemy from a teammate."
+        what: "Attackers against you have disadvantage; you have advantage on DEX saves until your next turn."
       },
       {
         name: "Dash",
@@ -57,7 +53,7 @@ window.PLAYBOOK = {
         cost: "Free",
         tldr: "Double your movement this turn (40 → 80 ft).",
         what: "Double your movement for this turn (40 → 80 ft).",
-        when: "You need to cover real distance — you can Dash as an Action AND use Step of the Wind for FOUR times your speed in one turn (4 × 40 = 160 ft)."
+        max: "Action Dash + bonus-action Step of the Wind = 4× speed in one turn (4 × 40 = 160 ft)."
       },
       {
         name: "Disengage",
@@ -66,7 +62,7 @@ window.PLAYBOOK = {
         cost: "Free",
         tldr: "Move without triggering opportunity attacks.",
         what: "Move without triggering opportunity attacks.",
-        when: "Almost never — Patient Defense does this as a bonus action for free. Only useful if you already used your bonus on something else."
+        max: "You almost never want this as an Action — Patient Defense does it as a Bonus for free."
       },
       {
         name: "Help",
@@ -74,8 +70,7 @@ window.PLAYBOOK = {
         source: "universal",
         cost: "Free",
         tldr: "Give an ally advantage on their next attack or ability check.",
-        what: "Grant an ally advantage on their next attack against a target within 5 ft of you, OR help them with an ability check.",
-        when: "You're low on options, your party's heavy hitter needs a boost, or it's a clutch skill check moment."
+        what: "Grant an ally advantage on their next attack against a target within 5 ft of you, OR help them with an ability check."
       },
       {
         name: "Hide",
@@ -84,7 +79,7 @@ window.PLAYBOOK = {
         cost: "Free",
         tldr: "Stealth check vs enemy Perception.",
         what: "Make a Stealth check (+1) vs enemies' Perception.",
-        when: "When you have cover/concealment. A hidden attacker gets advantage on their next attack."
+        max: "A hidden attacker gets advantage on their next attack — hide, then pop out for a big-hit attempt."
       },
       {
         name: "Ready",
@@ -92,8 +87,7 @@ window.PLAYBOOK = {
         source: "universal",
         cost: "Free",
         tldr: "Prepare an action to trigger on a condition (uses your Reaction).",
-        what: "Prepare a specific Action to trigger on a condition ('when the door opens, I throw a needle'). Uses your Reaction to execute.",
-        when: "Ambushes, doorways, or when you need to go LAST on purpose."
+        what: "Prepare a specific Action to trigger on a condition ('when the door opens, I throw a needle'). Uses your Reaction to execute."
       },
       {
         name: "Search",
@@ -101,8 +95,7 @@ window.PLAYBOOK = {
         source: "universal",
         cost: "Free",
         tldr: "Perception or Investigation check to find something specific.",
-        what: "Perception or Investigation check to find something specific.",
-        when: "Traps, hidden doors, lost items — when 'I look around' isn't enough."
+        what: "Perception or Investigation check to find something specific."
       },
       {
         name: "Bonus Unarmed Strike",
@@ -111,8 +104,7 @@ window.PLAYBOOK = {
         cost: "Free",
         tldr: "One free extra Unarmed Strike after your Attack action.",
         what: "After you take the Attack action with an unarmed strike or a Monk weapon, you can make one Unarmed Strike as a Bonus Action.",
-        when: "Every turn you Attack — it's free damage. Skip only if you need your Bonus for Flurry, Patient Defense, or Step of the Wind.",
-        tip: "No FP cost, no decision needed. This is why a basic Caeto turn is already two strikes."
+        max: "Always take it unless you need your Bonus for Flurry, Patient Defense, or Step of the Wind. It's free damage, no FP."
       },
       {
         name: "Flurry of Blows",
@@ -121,8 +113,7 @@ window.PLAYBOOK = {
         cost: "1 FP",
         tldr: "Two Unarmed Strikes; each hit triggers Open Hand (prone, shove, or no reactions).",
         what: "Make TWO unarmed strikes as a bonus action (instead of your one free one). On each HIT, use Open Hand Technique to impose: (a) knock prone, (b) shove 15 ft, or (c) the target can't take Reactions until end of your next turn.",
-        when: "You want to stack damage, OR you need to control a specific enemy (keep them from moving, running, or triggering opportunity attacks).",
-        tip: "'No Reactions' is the sleeper option — it lets your allies disengage and move without getting hit."
+        max: "Replaces the free bonus strike (2 strikes instead of 1). 'No Reactions' is the sleeper — lets allies disengage safely."
       },
       {
         name: "Patient Defense",
@@ -131,8 +122,7 @@ window.PLAYBOOK = {
         cost: "Free / 1 FP",
         tldr: "Bonus-action Disengage; pay 1 FP to also Dodge.",
         what: "FREE: Disengage (move without opportunity attacks). 1 FP: Disengage AND Dodge (attackers roll against you with disadvantage until your next turn).",
-        when: "You're getting hit too much, someone scary is staring you down, or you want to peel away from a melee without eating a parting shot.",
-        tip: "Paying the FP is worth it in boss fights — halving their hit rate for a round is huge."
+        max: "The 1 FP upgrade is worth it in boss fights — halving their hit rate for a round is huge."
       },
       {
         name: "Step of the Wind",
@@ -141,8 +131,7 @@ window.PLAYBOOK = {
         cost: "Free / 1 FP",
         tldr: "Bonus-action Dash; pay 1 FP to also Disengage and double jump distance.",
         what: "FREE: Dash (double your movement this turn — 40 → 80 ft). 1 FP: Dash AND Disengage; jump distance is also doubled this turn.",
-        when: "Closing distance, chasing a runner, crossing a gap, or escaping a bad spot safely.",
-        tip: "Your speed is already boosted by Unarmored Movement (+10 ft). A Step of the Wind turn can cover enormous ground."
+        max: "Stack with Action-Dash for 4× speed (160 ft in one turn). The 1 FP upgrade lets you escape without an opportunity attack."
       }
     ],
 
@@ -153,32 +142,28 @@ window.PLAYBOOK = {
         cost: "Reaction",
         tldr: "Reduce a physical hit by 1d10+5; if reduced to 0, 1 FP to redirect.",
         what: "When an attack HITS you with bludgeoning, piercing, or slashing damage, use your Reaction to reduce it by 1d10 + DEX (+1) + Monk level (4) = 1d10 + 5. If you reduce it to 0, you can spend 1 FP to REDIRECT: pick a target within 5 ft (melee) or 60 ft (ranged, not behind full cover). They make a DEX save or take 2 × Martial Arts die (2d6) + DEX mod (+1) of the same damage type.",
-        when: "ANY TIME you get hit by a physical attack that connects. It's almost always worth it — you're burning a Reaction you probably weren't using anyway.",
-        tip: "A big hit? Deflect it. A small hit? Deflect it anyway — it might go to 0 and let you counter-punch."
+        max: "Always deflect — even small hits. If it goes to 0, spend 1 FP to counter-punch for 2d6+1 damage."
       },
       {
         name: "Slow Fall",
         source: "yours",
         cost: "Reaction",
         tldr: "Reduce fall damage by 5 × Monk level = 20 HP.",
-        what: "When you fall, use your Reaction to reduce damage by 5 × Monk level = 20 HP.",
-        when: "Any fall. Free HP. Costs nothing."
+        what: "When you fall, use your Reaction to reduce damage by 5 × Monk level = 20 HP."
       },
       {
         name: "Opportunity Attack",
         source: "universal",
         cost: "Reaction",
         tldr: "One melee attack when a creature leaves your reach without Disengaging.",
-        what: "When a creature leaves your reach without Disengaging, you can use your Reaction to make ONE melee attack against them.",
-        when: "They're running and they didn't Disengage. Punish them."
+        what: "When a creature leaves your reach without Disengaging, you can use your Reaction to make ONE melee attack against them."
       },
       {
         name: "Ready-triggered action",
         source: "universal",
         cost: "Reaction",
         tldr: "Fires the action you prepared with Ready.",
-        what: "If you used Ready, your Reaction fires the prepared action.",
-        when: "Only if you planned ahead with Ready."
+        what: "If you used Ready, your Reaction fires the prepared action."
       }
     ],
 

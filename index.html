@@ -42,10 +42,14 @@
       <span class="brand-divider"></span>
       <span class="brand-name">Caeto Antulken</span>
       <span class="brand-divider"></span>
-      <span class="last-updated" id="lastUpdated" title="Last deployed version">Updated Apr 23, 2026 10:53PM CDT</span>
+      <span class="last-updated" id="lastUpdated" title="Last deployed version">Updated Apr 23, 2026 11:49PM CDT</span>
     </div>
 
     <div class="tracker-strip" aria-label="Quick status">
+      <div class="tracker-pod tracker-pod-static" title="Armor Class">
+        <strong>AC</strong>
+        <span class="value ac">13</span>
+      </div>
       <div class="tracker-pod">
         <strong>HP</strong>
         <span class="value hp" id="topHp">28 / 28</span>
@@ -213,14 +217,16 @@
 
   <!-- Turn coach -->
   <div class="pb-panel active" id="pb-turn">
-    <!-- Quick reference strip -->
-    <div class="pb-quickref" aria-label="Caeto quick reference">
-      <div class="qr-item"><span class="qr-l">AC</span><span class="qr-v">13</span></div>
-      <div class="qr-item"><span class="qr-l">HP</span><span class="qr-v">28</span></div>
-      <div class="qr-item"><span class="qr-l">FP</span><span class="qr-v">4</span></div>
-      <div class="qr-item"><span class="qr-l">Speed</span><span class="qr-v">40 ft</span></div>
-      <div class="qr-item"><span class="qr-l">Init</span><span class="qr-v">+1</span></div>
-      <div class="qr-item"><span class="qr-l">Prof</span><span class="qr-v">+2</span></div>
+    <!-- Init one-liner + slot-math brief -->
+    <div class="pb-init-line">Initiative <strong>+1</strong> · Speed <strong>40 ft</strong> · Prof <strong>+2</strong></div>
+    <div class="pb-slot-math" aria-label="How a turn works">
+      <div class="sm-title">Your turn, every round</div>
+      <ul class="sm-list">
+        <li><span class="slot-tag action">ACTION</span> <strong>1</strong> &mdash; usually Attack (one unarmed strike at L4).</li>
+        <li><span class="slot-tag bonus">BONUS</span> <strong>1</strong> &mdash; after Attack you get a <em>free</em> bonus-action unarmed strike (Martial Arts). Baseline turn = <strong>TWO strikes, zero FP</strong>. Spend FP to upgrade that bonus into Flurry, Patient Defense, or Step of the Wind instead.</li>
+        <li><span class="slot-tag movement">MOVEMENT</span> <strong>40 ft</strong> &mdash; split before/after your Action. Dash or Step of the Wind doubles it.</li>
+        <li><span class="slot-tag reaction">REACTION</span> <strong>1</strong> per round &mdash; off-turn. Default holder: Deflect Attacks.</li>
+      </ul>
     </div>
 
     <!-- Sticky slot legend -->
