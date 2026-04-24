@@ -184,7 +184,7 @@ window.PLAYBOOK = {
 
     movementNote: "Your speed is 30 ft + 10 ft (Unarmored Movement) = 40 ft. You can split movement before and after your Action/Bonus. You can stand up from Prone (costs half your speed). You can move along vertical surfaces with your Velthar Needles without needing Acrobatics.",
 
-    bonusActionNote: "MONK RULE: After you take the Attack action with an unarmed strike OR a monk weapon, you get ONE free bonus-action unarmed strike. This is separate from Flurry of Blows (which uses 1 FP for TWO strikes instead of one)."
+    bonusActionNote: "After you take the Attack action with an unarmed strike OR a monk weapon, you get ONE free bonus-action unarmed strike. This is separate from Flurry of Blows (which uses 1 FP for TWO strikes instead of one)."
   },
 
   // --------------------------------------------------

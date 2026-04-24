@@ -45,9 +45,7 @@ const DEFAULT_STATE = () => ({
   tweaks: [], // [{ id, text, done, createdAt }]
   party: [],  // [{ id, name, role, category, tags, notes, createdAt, updatedAt }]
   campaignEvents: [], // [{ id, year, monthIdx, day, text, createdAt }]
-  playbookReorderMode: false,
-  playbookOrder: {}, // { 'Action': [name,name], 'Bonus Action': [...], 'Reaction': [...] }
-  playbookCardOpen: {}, // { cardName: true } — remembers which cards user has expanded
+  // (playbook reorder + collapsible state removed in v13 — everything visible by default)
 });
 
 // Storage — prefer browser persistence; fall back to memory when blocked
@@ -1231,20 +1229,6 @@ function renderPlaybook() {
   if (!pb) return;
 
   const intro = $('#pbTurnIntro'); intro.innerHTML = ''; intro.appendChild(linkTerms(pb.turnCoach.intro));
-  const mv = $('#pbMovement'); mv.innerHTML = ''; mv.appendChild(linkTerms(pb.turnCoach.movementNote));
-  const bn = $('#pbBonusNote'); bn.innerHTML = ''; bn.appendChild(linkTerms(pb.turnCoach.bonusActionNote));
-
-  // Order actions/bonus/reactions by user-saved preference if present
-  const orderList = (arr, slotKey) => {
-    const saved = (state.playbookOrder && state.playbookOrder[slotKey]) || [];
-    if (!saved.length) return arr;
-    const byName = new Map(arr.map(x => [x.name, x]));
-    const seen = new Set();
-    const out = [];
-    saved.forEach(n => { if (byName.has(n)) { out.push(byName.get(n)); seen.add(n); } });
-    arr.forEach(x => { if (!seen.has(x.name)) out.push(x); });
-    return out;
-  };
 
   const actList = $('#pbActions');
   const bonusList = $('#pbBonus');
@@ -1254,16 +1238,16 @@ function renderPlaybook() {
   const actionsOnly = pb.turnCoach.actions.filter(a => a.slot !== 'Bonus Action');
   const bonusOnly = pb.turnCoach.actions.filter(a => a.slot === 'Bonus Action');
 
-  orderList(actionsOnly, 'Action').forEach(a => actList.appendChild(renderTurnCard(a)));
-  orderList(bonusOnly, 'Bonus Action').forEach(a => bonusList.appendChild(renderTurnCard(a)));
+  actionsOnly.forEach(a => actList.appendChild(renderTurnCard(a)));
+  bonusOnly.forEach(a => bonusList.appendChild(renderTurnCard(a)));
 
   // Reactions
   const reactList = $('#pbReactions');
   reactList.innerHTML = '';
-  orderList(pb.turnCoach.reactions, 'Reaction').forEach(r => reactList.appendChild(renderTurnCard(r, true)));
+  pb.turnCoach.reactions.forEach(r => reactList.appendChild(renderTurnCard(r, true)));
 
-  // Apply reorder-mode class + wire up DnD
-  updatePlaybookReorderUI();
+  // Movement: build the same kind of dense card list using movement-related options
+  renderMovementSection(pb);
 
   // Situations
   const sitGrid = $('#sitGrid');
@@ -1293,233 +1277,81 @@ function renderPlaybook() {
   renderGlossary();
 }
 
+// Dense flat card — name + cost on one row, TL;DR on next line, What/When/Tip inline underneath.
 function renderTurnCard(a, isReaction = false) {
   const slotKey = isReaction ? 'Reaction' : (a.slot || 'Action');
-  const isOpen = !!(state.playbookCardOpen && state.playbookCardOpen[a.name]);
-  const card = el('details', {
+  const card = el('article', {
     class: 'turn-card' + (a.source === 'universal' ? ' is-universal' : ' is-yours'),
     'data-card-name': a.name,
     'data-slot': slotKey,
     'data-source': a.source || 'yours',
-    draggable: 'false',
-  });
-  if (isOpen) card.setAttribute('open', '');
-
-  // Summary row — always visible. Holds drag handle, name, source tag, cost, tldr.
-  const sum = el('summary', { class: 't-summary' });
-  // Block the default <summary> toggle while in reorder mode so taps don't accidentally expand cards.
-  sum.addEventListener('click', e => {
-    if (state.playbookReorderMode) { e.preventDefault(); }
   });
 
-  const handle = el('span', { class: 't-handle', text: '⋮⋮', 'aria-hidden': 'true' });
-  sum.appendChild(handle);
-
+  // Header row: name + cost
   const head = el('div', { class: 't-head' });
   const titleSpan = el('span', { class: 't-name', text: a.name });
   const titleKey = ALIAS_MAP.get(a.name.toLowerCase())
     || (Object.prototype.hasOwnProperty.call(PLAYBOOK.abilityDetails || {}, a.name) ? a.name : null);
   if (titleKey) makeExplainable(titleSpan, titleKey);
   head.appendChild(titleSpan);
-
-  if (a.source === 'universal') {
-    head.appendChild(el('span', { class: 't-tag universal', text: 'Universal' }));
-  } else {
-    head.appendChild(el('span', { class: 't-tag yours', text: 'Yours' }));
-  }
-
   if (a.cost) head.appendChild(el('span', { class: 't-cost', text: a.cost }));
+  card.appendChild(head);
 
+  // TL;DR line (primary info)
   if (a.tldr) {
     const tldr = el('div', { class: 't-tldr' });
     tldr.appendChild(linkTerms(a.tldr));
-    head.appendChild(tldr);
+    card.appendChild(tldr);
   }
 
-  sum.appendChild(head);
-  card.appendChild(sum);
-
-  // Expanded body
-  const body = el('div', { class: 't-body' });
+  // Inline mechanics — all visible, no toggle
   const withLinks = (cls, labelText, str) => {
-    const wrap = el('span');
+    const wrap = el('span', { class: 't-text' });
     wrap.appendChild(linkTerms(str));
     return el('div', { class: cls }, el('span', { class: 't-l', text: labelText }), wrap);
   };
-  if (a.what) body.appendChild(withLinks('t-what', 'What', a.what));
-  if (a.when) body.appendChild(withLinks('t-when', 'When', a.when));
-  if (a.tip)  body.appendChild(withLinks('t-tip',  'Tip',  a.tip));
-  card.appendChild(body);
-
-  // Persist open/close
-  card.addEventListener('toggle', () => {
-    if (!state.playbookCardOpen) state.playbookCardOpen = {};
-    if (card.open) state.playbookCardOpen[a.name] = true;
-    else delete state.playbookCardOpen[a.name];
-    save();
-  });
+  if (a.what) card.appendChild(withLinks('t-what', 'What', a.what));
+  if (a.when) card.appendChild(withLinks('t-when', 'When', a.when));
+  if (a.tip)  card.appendChild(withLinks('t-tip',  'Tip',  a.tip));
 
   return card;
 }
 
-// ---- Playbook reorder mode ----
-function updatePlaybookReorderUI() {
-  const btn = $('#pbReorderBtn');
-  const reordering = !!state.playbookReorderMode;
-  const turnPanel = $('#pb-turn');
-  if (turnPanel) turnPanel.classList.toggle('reorder-mode', reordering);
-  if (btn) {
-    btn.textContent = reordering ? '✓ Done reordering' : '⋮⋮ Reorder';
-    btn.setAttribute('aria-pressed', reordering ? 'true' : 'false');
-    btn.classList.toggle('active', reordering);
-  }
+// Movement section: speed + stand-up + vertical-climb rules, then cross-referenced movement-related cards.
+function renderMovementSection(pb) {
+  const list = $('#pbMovement');
+  if (!list) return;
+  list.innerHTML = '';
 
-  // Remove or re-install an optional reset link next to the button
-  let reset = document.getElementById('pbResetOrderBtn');
-  if (reordering) {
-    if (!reset && btn && btn.parentNode) {
-      reset = el('button', {
-        id: 'pbResetOrderBtn',
-        class: 'btn small link-btn pb-reset-order',
-        type: 'button',
-        text: 'Reset order'
-      });
-      reset.addEventListener('click', () => {
-        if (!confirm('Reset all Playbook card orders to defaults?')) return;
-        state.playbookOrder = {};
-        save();
-        renderPlaybook();
-      });
-      btn.parentNode.insertBefore(reset, btn.nextSibling);
-    }
-  } else if (reset) {
-    reset.remove();
-  }
+  // Stat line — always-visible summary of movement rules
+  const facts = el('div', { class: 't-facts' });
+  facts.appendChild(linkTerms(pb.turnCoach.movementNote));
+  list.appendChild(facts);
 
-  // Wire each list for drag-and-drop when in reorder mode
-  ['#pbActions', '#pbBonus', '#pbReactions'].forEach(sel => {
-    const list = document.querySelector(sel);
-    if (!list) return;
-    wireListForReorder(list, reordering);
-  });
-}
-
-function wireListForReorder(list, enabled) {
-  Array.from(list.children).forEach(card => {
-    card.setAttribute('draggable', enabled ? 'true' : 'false');
-  });
-  // Avoid double-binding
-  if (list._reorderBound) return;
-  list._reorderBound = true;
-
-  let dragged = null;
-
-  list.addEventListener('dragstart', e => {
-    const card = e.target.closest('.turn-card');
-    if (!card || !state.playbookReorderMode) return;
-    dragged = card;
-    card.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-    try { e.dataTransfer.setData('text/plain', card.dataset.cardName || ''); } catch {}
+  // Cross-reference cards: Dash, Disengage (universal), Step of the Wind (bonus)
+  const actions = pb.turnCoach.actions;
+  const byName = new Map(actions.map(a => [a.name, a]));
+  const refs = ['Dash', 'Disengage', 'Step of the Wind'];
+  refs.forEach(name => {
+    const src = byName.get(name);
+    if (!src) return;
+    const xref = Object.assign({}, src);
+    // Tag with parent slot so user knows where to spend it (Action vs Bonus Action)
+    const slotTag = el('span', { class: 'mv-slot-tag', text: (src.slot || 'Action').toUpperCase() });
+    const card = renderTurnCard(xref);
+    const head = card.querySelector('.t-head');
+    if (head) head.insertBefore(slotTag, head.firstChild.nextSibling);
+    list.appendChild(card);
   });
 
-  list.addEventListener('dragover', e => {
-    if (!dragged || !state.playbookReorderMode) return;
-    e.preventDefault();
-    const after = getDragAfterElement(list, e.clientY);
-    if (after == null) list.appendChild(dragged);
-    else list.insertBefore(dragged, after);
-  });
-
-  list.addEventListener('dragend', () => {
-    if (!dragged) return;
-    dragged.classList.remove('dragging');
-    dragged = null;
-    saveListOrder(list);
-  });
-
-  // Touch fallback for iOS: long-press then drag via pointer events
-  let touchCard = null;
-  let touchStartY = 0;
-  let longPressTimer = null;
-  const LONG_PRESS_MS = 350;
-
-  list.addEventListener('touchstart', e => {
-    if (!state.playbookReorderMode) return;
-    const card = e.target.closest('.turn-card');
-    if (!card) return;
-    touchStartY = e.touches[0].clientY;
-    longPressTimer = setTimeout(() => {
-      touchCard = card;
-      card.classList.add('dragging');
-    }, LONG_PRESS_MS);
-  }, { passive: true });
-
-  list.addEventListener('touchmove', e => {
-    if (!state.playbookReorderMode) return;
-    if (!touchCard) {
-      if (longPressTimer && Math.abs(e.touches[0].clientY - touchStartY) > 10) {
-        clearTimeout(longPressTimer);
-      }
-      return;
-    }
-    e.preventDefault();
-    const y = e.touches[0].clientY;
-    const after = getDragAfterElement(list, y);
-    if (after == null) list.appendChild(touchCard);
-    else list.insertBefore(touchCard, after);
-  }, { passive: false });
-
-  list.addEventListener('touchend', () => {
-    clearTimeout(longPressTimer);
-    if (!touchCard) return;
-    touchCard.classList.remove('dragging');
-    saveListOrder(list);
-    touchCard = null;
-  });
-  list.addEventListener('touchcancel', () => {
-    clearTimeout(longPressTimer);
-    if (touchCard) touchCard.classList.remove('dragging');
-    touchCard = null;
-  });
-}
-
-function getDragAfterElement(container, y) {
-  const cards = Array.from(container.querySelectorAll('.turn-card:not(.dragging)'));
-  let closest = { offset: Number.NEGATIVE_INFINITY, elem: null };
-  for (const c of cards) {
-    const box = c.getBoundingClientRect();
-    const offset = y - box.top - box.height / 2;
-    if (offset < 0 && offset > closest.offset) closest = { offset, elem: c };
-  }
-  return closest.elem;
-}
-
-function saveListOrder(list) {
-  const slot = list.id === 'pbActions' ? 'Action'
-            : list.id === 'pbBonus' ? 'Bonus Action'
-            : list.id === 'pbReactions' ? 'Reaction' : null;
-  if (!slot) return;
-  const names = Array.from(list.querySelectorAll('.turn-card'))
-    .map(c => c.dataset.cardName)
-    .filter(Boolean);
-  if (!state.playbookOrder) state.playbookOrder = {};
-  state.playbookOrder[slot] = names;
-  save();
-}
-
-// Wire the reorder toggle button (button exists in static HTML; app.js runs at end of body).
-{
-  const pbReorderBtn = document.getElementById('pbReorderBtn');
-  if (pbReorderBtn) pbReorderBtn.addEventListener('click', () => {
-    state.playbookReorderMode = !state.playbookReorderMode;
-    // Close all open cards during reorder to prevent accidental expand
-    if (state.playbookReorderMode) {
-      document.querySelectorAll('#pb-turn .turn-card[open]').forEach(c => c.removeAttribute('open'));
-    }
-    save();
-    updatePlaybookReorderUI();
-  });
+  // Monk bonus-strike note (kept as dense rule box)
+  const monkBox = el('div', { class: 't-rule-box' });
+  const label = el('div', { class: 't-rule-label', text: 'MONK RULE' });
+  const body = el('div', { class: 't-rule-body' });
+  body.appendChild(linkTerms(pb.turnCoach.bonusActionNote));
+  monkBox.appendChild(label);
+  monkBox.appendChild(body);
+  list.appendChild(monkBox);
 }
 
 function renderGlossary() {

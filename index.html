@@ -42,7 +42,7 @@
       <span class="brand-divider"></span>
       <span class="brand-name">Caeto Antulken</span>
       <span class="brand-divider"></span>
-      <span class="last-updated" id="lastUpdated" title="Last deployed version">Updated Apr 23, 2026 10:39PM CDT</span>
+      <span class="last-updated" id="lastUpdated" title="Last deployed version">Updated Apr 23, 2026 10:53PM CDT</span>
     </div>
 
     <div class="tracker-strip" aria-label="Quick status">
@@ -229,7 +229,6 @@
       <a href="#pb-bonus" class="slot-tag bonus">BONUS</a>
       <a href="#pb-reactions" class="slot-tag reaction">REACTION</a>
       <a href="#pb-movement" class="slot-tag movement">MOVEMENT</a>
-      <button id="pbReorderBtn" class="btn small pb-reorder-btn" type="button" aria-pressed="false" title="Drag cards to reorder">⋮⋮ Reorder</button>
     </div>
 
     <div class="pb-intro" id="pbTurnIntro"></div>
@@ -255,12 +254,10 @@
         <p class="muted small">Off-turn responses to triggers. One per round.</p>
         <div class="pb-card-list" id="pbReactions"></div>
       </section>
-      <section class="card" id="pb-movement">
+      <section class="card pb-slot" id="pb-movement">
         <h2 class="card-title"><span class="slot-tag movement">MOVEMENT</span> Getting around</h2>
-        <p id="pbMovement" class="muted"></p>
-        <div class="flourish"></div>
-        <h2 class="card-title">The Monk bonus-strike rule</h2>
-        <p id="pbBonusNote" class="muted"></p>
+        <p class="muted small">Your base speed, plus every card that changes how far you move.</p>
+        <div class="pb-card-list" id="pbMovement"></div>
       </section>
     </div>
   </div>
