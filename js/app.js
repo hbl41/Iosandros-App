@@ -117,6 +117,40 @@ $('#themeToggle').addEventListener('click', () => {
 });
 
 // ========================================================
+//  Hard Refresh — unregister SW, clear caches, reload fresh
+// ========================================================
+(function setupHardRefresh() {
+  const btn = document.getElementById('hardRefresh');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    if (btn.dataset.busy === '1') return;
+    btn.dataset.busy = '1';
+    btn.classList.add('is-spinning');
+    const svg = btn.querySelector('svg');
+    if (svg) svg.style.transition = 'transform 0.6s linear';
+    try {
+      // 1. Unregister all service workers so the new one installs next load.
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      }
+      // 2. Purge all caches (CacheStorage).
+      if (typeof caches !== 'undefined' && caches.keys) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+    } catch (e) {
+      console.warn('Hard refresh cleanup warning:', e);
+    }
+    // 3. Cache-buster reload so iOS fetches fresh HTML even if the PWA
+    //    tried to serve a stale shell.
+    const url = new URL(window.location.href);
+    url.searchParams.set('_r', Date.now().toString());
+    window.location.replace(url.toString());
+  });
+})();
+
+// ========================================================
 //  Tabs
 // ========================================================
 function activateTab(name) {

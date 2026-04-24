@@ -238,6 +238,13 @@ h1,h2,h3,h4,h5,h6 {
 }
 .tracker-pod-static strong { color: var(--color-text-muted); }
 
+/* Hard refresh button spin */
+#hardRefresh.is-spinning svg { animation: hardRefreshSpin 0.6s linear infinite; transform-origin: 50% 50%; }
+@keyframes hardRefreshSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 .icon-btn {
   width: 36px; height: 36px;
   display: inline-flex; align-items: center; justify-content: center;
