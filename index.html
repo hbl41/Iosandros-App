@@ -42,7 +42,7 @@
       <span class="brand-divider"></span>
       <span class="brand-name">Caeto Antulken</span>
       <span class="brand-divider"></span>
-      <span class="last-updated" id="lastUpdated" title="Last deployed version">Updated Apr 23, 2026 9:30PM CDT</span>
+      <span class="last-updated" id="lastUpdated" title="Last deployed version">Updated Apr 23, 2026 10:39PM CDT</span>
     </div>
 
     <div class="tracker-strip" aria-label="Quick status">
@@ -201,7 +201,7 @@
     <div>
       <div class="eyebrow">For first-time players</div>
       <h1>The Playbook</h1>
-      <p>Plain-English help for playing Caeto. Use the Turn Coach when you don't know what to do, the Situation Helper when things get weird, and the Glossary when someone drops a term you don't know.</p>
+      <p class="page-caption" data-caption-id="playbook">Plain-English help for playing Caeto. Use the Turn Coach when you don't know what to do, the Situation Helper when things get weird, and the Glossary when someone drops a term you don't know.</p>
     </div>
   </header>
 
@@ -213,15 +213,34 @@
 
   <!-- Turn coach -->
   <div class="pb-panel active" id="pb-turn">
+    <!-- Quick reference strip -->
+    <div class="pb-quickref" aria-label="Caeto quick reference">
+      <div class="qr-item"><span class="qr-l">AC</span><span class="qr-v">13</span></div>
+      <div class="qr-item"><span class="qr-l">HP</span><span class="qr-v">28</span></div>
+      <div class="qr-item"><span class="qr-l">FP</span><span class="qr-v">4</span></div>
+      <div class="qr-item"><span class="qr-l">Speed</span><span class="qr-v">40 ft</span></div>
+      <div class="qr-item"><span class="qr-l">Init</span><span class="qr-v">+1</span></div>
+      <div class="qr-item"><span class="qr-l">Prof</span><span class="qr-v">+2</span></div>
+    </div>
+
+    <!-- Sticky slot legend -->
+    <div class="pb-legend" role="navigation" aria-label="Playbook slots">
+      <a href="#pb-actions" class="slot-tag action">ACTION</a>
+      <a href="#pb-bonus" class="slot-tag bonus">BONUS</a>
+      <a href="#pb-reactions" class="slot-tag reaction">REACTION</a>
+      <a href="#pb-movement" class="slot-tag movement">MOVEMENT</a>
+      <button id="pbReorderBtn" class="btn small pb-reorder-btn" type="button" aria-pressed="false" title="Drag cards to reorder">⋮⋮ Reorder</button>
+    </div>
+
     <div class="pb-intro" id="pbTurnIntro"></div>
 
     <div class="pb-slot-grid">
-      <section class="card pb-slot" data-slot="Action">
+      <section class="card pb-slot" data-slot="Action" id="pb-actions">
         <h2 class="card-title"><span class="slot-tag action">ACTION</span> What you can DO</h2>
         <p class="muted small">The main thing on your turn. One per turn.</p>
         <div class="pb-card-list" id="pbActions"></div>
       </section>
-      <section class="card pb-slot" data-slot="Bonus Action">
+      <section class="card pb-slot" data-slot="Bonus Action" id="pb-bonus">
         <h2 class="card-title"><span class="slot-tag bonus">BONUS</span> Extra moves</h2>
         <p class="muted small">A smaller extra action. One per turn. Monks use these constantly.</p>
         <div class="pb-card-list" id="pbBonus"></div>
@@ -231,12 +250,12 @@
     <div class="flourish"></div>
 
     <div class="grid grid-2">
-      <section class="card">
+      <section class="card" id="pb-reactions">
         <h2 class="card-title"><span class="slot-tag reaction">REACTION</span> When others act</h2>
         <p class="muted small">Off-turn responses to triggers. One per round.</p>
         <div class="pb-card-list" id="pbReactions"></div>
       </section>
-      <section class="card">
+      <section class="card" id="pb-movement">
         <h2 class="card-title"><span class="slot-tag movement">MOVEMENT</span> Getting around</h2>
         <p id="pbMovement" class="muted"></p>
         <div class="flourish"></div>
@@ -271,7 +290,7 @@
     <div>
       <div class="eyebrow">At the table</div>
       <h1>Play Trackers</h1>
-      <p>Live counters for hit points, focus, the Ring of Discernment, rest cycles, and your negotiation budget. Everything saves locally between sessions.</p>
+      <p class="page-caption" data-caption-id="trackers">Live counters for hit points, focus, the Ring of Discernment, rest cycles, and your negotiation budget. Everything saves locally between sessions.</p>
     </div>
     <button class="btn small" id="resetAll" title="Reset all trackers">Reset All</button>
   </header>
@@ -363,9 +382,12 @@
     <div>
       <div class="eyebrow">The Realm</div>
       <h1>The 13 Kingdoms &amp; Territories</h1>
-      <p>Click a kingdom to toggle it as one of your <b>six History/Culture advantage</b> picks. Your choices persist across sessions.</p>
+      <p class="page-caption" data-caption-id="kingdoms">Click a kingdom to toggle it as one of your **six History/Culture advantage** picks. Your choices persist across sessions.</p>
     </div>
-    <div class="advantage-counter">Advantage picks: <b id="advCount">0</b> / 6</div>
+    <div class="advantage-counter">
+      <span>Advantage picks: <b id="advCount">0</b> / 6</span>
+      <button id="advLockBtn" class="btn small adv-lock-btn" type="button" aria-pressed="true">🔒 Locked</button>
+    </div>
   </header>
 
   <div class="filter-row" id="kingdomFilters"></div>
@@ -385,7 +407,7 @@
     <div>
       <div class="eyebrow">Since the Separation</div>
       <h1>Historical Timeline</h1>
-      <p>From 0 SE to the present day of 1224 SE. Every Era of Peace, every Bloody War, every fallen city — and the Campaign beginning you're living through right now.</p>
+      <p class="page-caption" data-caption-id="history">From 0 SE to the present day of 1224 SE. Every Era of Peace, every Bloody War, every fallen city — and the Campaign beginning you're living through right now.</p>
     </div>
     <input type="search" class="search-input" id="historyFilter" style="max-width: 260px" placeholder="Filter history…" aria-label="Filter history" />
   </header>
@@ -399,7 +421,7 @@
     <div>
       <div class="eyebrow">Lore &amp; Reference</div>
       <h1>Other Info</h1>
-      <p class="muted">Supplementary lore, references, and notes. More sections will be added over time.</p>
+      <p class="page-caption muted" data-caption-id="other-info">Supplementary lore, references, and notes. More sections will be added over time.</p>
     </div>
   </header>
 
@@ -430,7 +452,7 @@
     <div>
       <div class="eyebrow">The Iosandran Calendar</div>
       <h1>13 Months · 365 Days</h1>
-      <p>Click a month then a day to set the in-game date. Season markers are highlighted.</p>
+      <p class="page-caption" data-caption-id="calendar">Click a month then a day to set the in-game date. Season markers are highlighted.</p>
     </div>
   </header>
 
@@ -492,7 +514,7 @@
       <div>
         <div class="eyebrow">As you meet them</div>
         <h1>Party &amp; Campaign NPCs</h1>
-        <p>People you've met through the campaign — party members, NPCs, enemies, allies. Click any card to edit. Saved to the cloud.</p>
+        <p class="page-caption" data-caption-id="party">People you've met through the campaign — party members, NPCs, enemies, allies. Click any card to edit. Saved to the cloud.</p>
       </div>
       <div class="btn-row">
         <input type="search" class="search-input" id="partyFilter" style="max-width: 260px" placeholder="Filter…" aria-label="Filter party and NPCs" />
@@ -511,7 +533,7 @@
       <div>
         <div class="eyebrow">The Network</div>
         <h1>Connections &amp; Employees</h1>
-        <p>Elites who have purchased — and now quietly help move — illegal Dead-World magical artifacts. And the crew of Golden Basin Goods.</p>
+        <p class="page-caption" data-caption-id="connections">Elites who have purchased — and now quietly help move — illegal Dead-World magical artifacts. And the crew of Golden Basin Goods.</p>
       </div>
       <div class="btn-row">
         <input type="search" class="search-input" id="connFilter" style="max-width: 260px" placeholder="Filter contacts…" aria-label="Filter connections" />
@@ -612,7 +634,7 @@
     <div>
       <div class="eyebrow">Cartography</div>
       <h1>The Realm of Iosandros</h1>
-      <p>Scroll or pinch to zoom, drag to pan.</p>
+      <p class="page-caption" data-caption-id="map">Scroll or pinch to zoom, drag to pan.</p>
     </div>
   </header>
 
@@ -633,7 +655,7 @@
     <div>
       <div class="eyebrow">For next session</div>
       <h1>Tweaks</h1>
-      <p>Queue up small edits as you think of them (bold this, resize that, fix this typo). Saved in your browser. Next time you chat with Computer, say "check the tweaks list" and it'll work through them.</p>
+      <p class="page-caption" data-caption-id="tweaks">Queue up small edits as you think of them (bold this, resize that, fix this typo). Saved in your browser. Next time you chat with Computer, say "check the tweaks list" and it'll work through them.</p>
     </div>
   </header>
 

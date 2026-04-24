@@ -14,7 +14,9 @@ window.PLAYBOOK = {
       {
         name: "Attack — Unarmed",
         slot: "Action",
+        source: "yours",
         cost: "Free",
+        tldr: "d20 + INT vs AC; 1d6 bludgeoning on hit.",
         what: "Swing at someone within 5 ft. Roll d20 + INT mod (Intelligent Strikes) vs their AC. On a hit, 1d6 bludgeoning damage.",
         when: "Your bread-and-butter. Safe, cheap, and always available.",
         tip: "Because you're a Monk you get a FREE bonus-action unarmed strike after you take the Attack action — so a basic turn is already TWO punches."
@@ -22,15 +24,102 @@ window.PLAYBOOK = {
       {
         name: "Attack — Velthar Steel Hair Needles",
         slot: "Action",
+        source: "yours",
         cost: "Free",
+        tldr: "+4 to hit, 1d8 piercing; climb walls without Acrobatics.",
         what: "+4 to hit, 1d8 piercing. These are your 'real' weapon. Also let you scale walls without rolling Acrobatics.",
         when: "When 1d8 matters more than the bonus damage-type tricks of unarmed. Also when climbing/terrain is in play.",
         tip: "Needles are piercing — good vs creatures resistant to bludgeoning (skeletons, etc.)."
       },
       {
+        name: "Ring of Discernment",
+        slot: "Action",
+        source: "yours",
+        cost: "7 HP · 3/day",
+        tldr: "Slide ring after a statement. Cold = lie, warm = truth.",
+        what: "Slide your finger on the ring; it slices you and draws blood. Cold = the last spoken statement is a lie. Warm = truth.",
+        when: "Social scenes where you strongly suspect deception — interrogations, negotiations, any time someone's story smells wrong.",
+        tip: "Resets on a Long Rest. 7 HP is a big chunk of your 28 — don't use it on trivial lies. Save it for 'is this person about to betray us?'"
+      },
+      {
+        name: "Dodge",
+        slot: "Action",
+        source: "universal",
+        cost: "Free",
+        tldr: "Attackers have disadvantage; advantage on DEX saves until next turn.",
+        what: "Attackers against you have disadvantage; you have advantage on DEX saves until your next turn.",
+        when: "You're out of Focus and need to survive a round. Also strong when you're the 'tank' distracting an enemy from a teammate."
+      },
+      {
+        name: "Dash",
+        slot: "Action",
+        source: "universal",
+        cost: "Free",
+        tldr: "Double your movement this turn (40 → 80 ft).",
+        what: "Double your movement for this turn (40 → 80 ft).",
+        when: "You need to cover real distance — you can Dash as an Action AND use Step of the Wind for FOUR times your speed in one turn (4 × 40 = 160 ft)."
+      },
+      {
+        name: "Disengage",
+        slot: "Action",
+        source: "universal",
+        cost: "Free",
+        tldr: "Move without triggering opportunity attacks.",
+        what: "Move without triggering opportunity attacks.",
+        when: "Almost never — Patient Defense does this as a bonus action for free. Only useful if you already used your bonus on something else."
+      },
+      {
+        name: "Help",
+        slot: "Action",
+        source: "universal",
+        cost: "Free",
+        tldr: "Give an ally advantage on their next attack or ability check.",
+        what: "Grant an ally advantage on their next attack against a target within 5 ft of you, OR help them with an ability check.",
+        when: "You're low on options, your party's heavy hitter needs a boost, or it's a clutch skill check moment."
+      },
+      {
+        name: "Hide",
+        slot: "Action",
+        source: "universal",
+        cost: "Free",
+        tldr: "Stealth check vs enemy Perception.",
+        what: "Make a Stealth check (+1) vs enemies' Perception.",
+        when: "When you have cover/concealment. A hidden attacker gets advantage on their next attack."
+      },
+      {
+        name: "Ready",
+        slot: "Action",
+        source: "universal",
+        cost: "Free",
+        tldr: "Prepare an action to trigger on a condition (uses your Reaction).",
+        what: "Prepare a specific Action to trigger on a condition ('when the door opens, I throw a needle'). Uses your Reaction to execute.",
+        when: "Ambushes, doorways, or when you need to go LAST on purpose."
+      },
+      {
+        name: "Search",
+        slot: "Action",
+        source: "universal",
+        cost: "Free",
+        tldr: "Perception or Investigation check to find something specific.",
+        what: "Perception or Investigation check to find something specific.",
+        when: "Traps, hidden doors, lost items — when 'I look around' isn't enough."
+      },
+      {
+        name: "Bonus Unarmed Strike",
+        slot: "Bonus Action",
+        source: "yours",
+        cost: "Free",
+        tldr: "One free extra Unarmed Strike after your Attack action.",
+        what: "After you take the Attack action with an unarmed strike or a Monk weapon, you can make one Unarmed Strike as a Bonus Action.",
+        when: "Every turn you Attack — it's free damage. Skip only if you need your Bonus for Flurry, Patient Defense, or Step of the Wind.",
+        tip: "No FP cost, no decision needed. This is why a basic Caeto turn is already two strikes."
+      },
+      {
         name: "Flurry of Blows",
         slot: "Bonus Action",
+        source: "yours",
         cost: "1 FP",
+        tldr: "Two Unarmed Strikes; each hit triggers Open Hand (prone, shove, or no reactions).",
         what: "Make TWO unarmed strikes as a bonus action (instead of your one free one). On each HIT, use Open Hand Technique to impose: (a) knock prone, (b) shove 15 ft, or (c) the target can't take Reactions until end of your next turn.",
         when: "You want to stack damage, OR you need to control a specific enemy (keep them from moving, running, or triggering opportunity attacks).",
         tip: "'No Reactions' is the sleeper option — it lets your allies disengage and move without getting hit."
@@ -38,7 +127,9 @@ window.PLAYBOOK = {
       {
         name: "Patient Defense",
         slot: "Bonus Action",
-        cost: "Free (or 1 FP)",
+        source: "yours",
+        cost: "Free / 1 FP",
+        tldr: "Bonus-action Disengage; pay 1 FP to also Dodge.",
         what: "FREE: Disengage (move without opportunity attacks). 1 FP: Disengage AND Dodge (attackers roll against you with disadvantage until your next turn).",
         when: "You're getting hit too much, someone scary is staring you down, or you want to peel away from a melee without eating a parting shot.",
         tip: "Paying the FP is worth it in boss fights — halving their hit rate for a round is huge."
@@ -46,96 +137,46 @@ window.PLAYBOOK = {
       {
         name: "Step of the Wind",
         slot: "Bonus Action",
-        cost: "Free (or 1 FP)",
+        source: "yours",
+        cost: "Free / 1 FP",
+        tldr: "Bonus-action Dash; pay 1 FP to also Disengage and double jump distance.",
         what: "FREE: Dash (double your movement this turn — 40 → 80 ft). 1 FP: Dash AND Disengage; jump distance is also doubled this turn.",
         when: "Closing distance, chasing a runner, crossing a gap, or escaping a bad spot safely.",
         tip: "Your speed is already boosted by Unarmored Movement (+10 ft). A Step of the Wind turn can cover enormous ground."
-      },
-      {
-        name: "Dodge (standard action)",
-        slot: "Action",
-        cost: "Free",
-        what: "Attackers against you have disadvantage; you have advantage on DEX saves until your next turn.",
-        when: "You're out of Focus and need to survive a round. Also strong when you're the 'tank' distracting an enemy from a teammate."
-      },
-      {
-        name: "Dash (standard action)",
-        slot: "Action",
-        cost: "Free",
-        what: "Double your movement for this turn (40 → 80 ft).",
-        when: "You need to cover real distance — you can Dash as an Action AND use Step of the Wind for FOUR times your speed in one turn (4 × 40 = 160 ft)."
-      },
-      {
-        name: "Disengage (standard action)",
-        slot: "Action",
-        cost: "Free",
-        what: "Move without triggering opportunity attacks.",
-        when: "Almost never — Patient Defense does this as a bonus action for free. Only useful if you already used your bonus on something else."
-      },
-      {
-        name: "Help",
-        slot: "Action",
-        cost: "Free",
-        what: "Grant an ally advantage on their next attack against a target within 5 ft of you, OR help them with an ability check.",
-        when: "You're low on options, your party's heavy hitter needs a boost, or it's a clutch skill check moment."
-      },
-      {
-        name: "Hide",
-        slot: "Action",
-        cost: "Free",
-        what: "Make a Stealth check (+1) vs enemies' Perception.",
-        when: "When you have cover/concealment. A hidden attacker gets advantage on their next attack."
-      },
-      {
-        name: "Ready",
-        slot: "Action",
-        cost: "Free",
-        what: "Prepare a specific Action to trigger on a condition ('when the door opens, I throw a needle'). Uses your Reaction to execute.",
-        when: "Ambushes, doorways, or when you need to go LAST on purpose."
-      },
-      {
-        name: "Search",
-        slot: "Action",
-        cost: "Free",
-        what: "Perception or Investigation check to find something specific.",
-        when: "Traps, hidden doors, lost items — when 'I look around' isn't enough."
-      },
-      {
-        name: "Ring of Discernment",
-        slot: "Action",
-        cost: "7 HP · 3/day",
-        what: "Slide your finger on the ring; it slices you and draws blood. Cold = the last spoken statement is a lie. Warm = truth.",
-        when: "Social scenes where you strongly suspect deception — interrogations, negotiations, any time someone's story smells wrong.",
-        tip: "Resets on a Long Rest. 7 HP is a big chunk of your 28 — don't use it on trivial lies. Save it for 'is this person about to betray us?'"
-      },
-      {
-        name: "Cast a spell (you have none)",
-        slot: "Action",
-        cost: "—",
-        what: "You're a Monk — no spells. Your Focus Points are your magic.",
-        when: "Never, for you. Listed for completeness."
       }
     ],
 
     reactions: [
       {
         name: "Deflect Attacks",
+        source: "yours",
+        cost: "Reaction",
+        tldr: "Reduce a physical hit by 1d10+5; if reduced to 0, 1 FP to redirect.",
         what: "When an attack HITS you with bludgeoning, piercing, or slashing damage, use your Reaction to reduce it by 1d10 + DEX (+1) + Monk level (4) = 1d10 + 5. If you reduce it to 0, you can spend 1 FP to REDIRECT: pick a target within 5 ft (melee) or 60 ft (ranged, not behind full cover). They make a DEX save or take 2 × Martial Arts die (2d6) + DEX mod (+1) of the same damage type.",
         when: "ANY TIME you get hit by a physical attack that connects. It's almost always worth it — you're burning a Reaction you probably weren't using anyway.",
         tip: "A big hit? Deflect it. A small hit? Deflect it anyway — it might go to 0 and let you counter-punch."
       },
       {
         name: "Slow Fall",
+        source: "yours",
+        cost: "Reaction",
+        tldr: "Reduce fall damage by 5 × Monk level = 20 HP.",
         what: "When you fall, use your Reaction to reduce damage by 5 × Monk level = 20 HP.",
         when: "Any fall. Free HP. Costs nothing."
       },
       {
         name: "Opportunity Attack",
+        source: "universal",
+        cost: "Reaction",
+        tldr: "One melee attack when a creature leaves your reach without Disengaging.",
         what: "When a creature leaves your reach without Disengaging, you can use your Reaction to make ONE melee attack against them.",
         when: "They're running and they didn't Disengage. Punish them."
       },
       {
         name: "Ready-triggered action",
+        source: "universal",
+        cost: "Reaction",
+        tldr: "Fires the action you prepared with Ready.",
         what: "If you used Ready, your Reaction fires the prepared action.",
         when: "Only if you planned ahead with Ready."
       }
@@ -154,6 +195,7 @@ window.PLAYBOOK = {
       id: "tookBigHit",
       label: "I just took a big hit",
       emoji: "💥",
+      headline: "Deflect Attacks — knock 1d10+5 off. Almost always worth it.",
       plays: [
         "USE YOUR REACTION: Deflect Attacks. 1d10 + 5 off the damage. Almost always worth it.",
         "Next turn, open with Patient Defense (1 FP) — attackers have disadvantage and you're also disengaged. Breathing room.",
@@ -164,6 +206,7 @@ window.PLAYBOOK = {
       id: "outnumbered",
       label: "I'm surrounded / outnumbered",
       emoji: "⚔️",
+      headline: "Flurry on the toughest; Open Hand knock PRONE to swing the fight.",
       plays: [
         "Flurry of Blows (1 FP) on the toughest one, use Open Hand to KNOCK PRONE — now the others have disadvantage vs you and advantage for your team.",
         "Alternatively, use Open Hand option (c) NO REACTIONS on the biggest threat, then move out — they can't opportunity-attack.",
@@ -174,6 +217,7 @@ window.PLAYBOOK = {
       id: "closeDistance",
       label: "I need to close distance FAST",
       emoji: "🏃",
+      headline: "Action-Dash + Step of the Wind = 160 ft in one turn.",
       plays: [
         "Dash (Action) + Step of the Wind (Bonus, free). That's 4 × 40 ft = 160 ft in one turn.",
         "Use Velthar Needles to scale walls/cliffs without Acrobatics checks.",
@@ -184,6 +228,7 @@ window.PLAYBOOK = {
       id: "outOfReach",
       label: "Enemy is at range and I can't reach them",
       emoji: "🎯",
+      headline: "Throw a Needle, or close the gap with Dash + Step of the Wind.",
       plays: [
         "Throw a Velthar Needle — but check distance with your DM; they're primarily melee.",
         "If you have Deflect Attacks available and they're a ranged attacker, let them hit you, deflect to 0, then REDIRECT 2d6 + 1 back at them (up to 60 ft).",
@@ -194,6 +239,7 @@ window.PLAYBOOK = {
       id: "protectAlly",
       label: "I need to protect an ally",
       emoji: "🛡️",
+      headline: "Flurry + Open Hand SHOVE to push the enemy 15 ft off your ally.",
       plays: [
         "Step between them and the threat. Use Flurry with Open Hand SHOVE to push the enemy 15 ft away from your ally.",
         "Open Hand 'no reactions' on the enemy means your ally can disengage and escape freely.",
@@ -204,6 +250,7 @@ window.PLAYBOOK = {
       id: "socialTension",
       label: "Social encounter / negotiation",
       emoji: "💬",
+      headline: "Lead with Persuasion (+5). You're the talker.",
       plays: [
         "Lead with Persuasion (+5 — your highest). You're the talker.",
         "For a read on the room: Insight (+4). Great before you commit to a position.",
@@ -215,6 +262,7 @@ window.PLAYBOOK = {
       id: "suspectLie",
       label: "Someone might be lying",
       emoji: "👁️",
+      headline: "Insight first (+4, free). Ring of Discernment only if stakes are high.",
       plays: [
         "Step one: Insight check (+4). Trust your read first — it's free.",
         "Step two (if stakes are high and you're still unsure): Ring of Discernment. Ask them to repeat the claim, then use the ring. Cold = lie, warm = truth.",
@@ -225,6 +273,7 @@ window.PLAYBOOK = {
       id: "scouting",
       label: "Stealth / scouting / hidden approach",
       emoji: "🌑",
+      headline: "Let the rogue lead — your Stealth is only +1. Use vertical routes.",
       plays: [
         "Stealth is only +1. You're not a rogue — if the party has one, let them lead.",
         "Your Velthar Needles let you go OVER obstacles (walls, cliffs) without Acrobatics rolls — use vertical approaches.",
@@ -235,6 +284,7 @@ window.PLAYBOOK = {
       id: "lowHP",
       label: "I'm low on HP",
       emoji: "❤️‍🩹",
+      headline: "Short Rest if possible; otherwise Patient Defense + Deflect every hit.",
       plays: [
         "Short Rest if you can — it's not a heal, but it restores your Focus Points. (DM will say when that's possible.)",
         "In combat, Patient Defense + stay at range of a tanky ally. Use Deflect on every incoming hit.",
@@ -245,6 +295,7 @@ window.PLAYBOOK = {
       id: "newKingdom",
       label: "Just traveled to a new Kingdom",
       emoji: "🏰",
+      headline: "Budget resets: 500k coffee, rope, iron are fresh.",
       plays: [
         "Your negotiation budget RESETS — 500k coffee, 500k rope, 500k iron are fresh.",
         "Check the Kingdoms tab: is this one of your six advantage-picks for History/Culture checks?",
@@ -255,6 +306,7 @@ window.PLAYBOOK = {
       id: "initiative",
       label: "Combat just started (roll initiative)",
       emoji: "⚡",
+      headline: "Uncanny Metabolism if low on FP/HP. Then close + Flurry the biggest threat.",
       plays: [
         "CONSIDER Uncanny Metabolism: regain all FP + heal 1d6+4 HP. Once per long rest. If you already have full FP and HP, skip it.",
         "First turn plan: close distance (Step of the Wind if needed), open with Flurry of Blows on the biggest threat.",
@@ -457,24 +509,8 @@ window.PLAYBOOK = {
   glossary: [
     // Core D&D
     { term: "AC (Armor Class)", domain: "D&D", def: "How hard you are to hit. An attacker rolls d20 + bonuses vs your AC. Yours is 13." },
-    { term: "Action", domain: "D&D", def: "The main thing you do on your turn (attack, cast a spell, dash, dodge, etc.). One per turn." },
-    { term: "Advantage", domain: "D&D", def: "Roll two d20s, keep the HIGHER. Happens when you have the upper hand — from cover, prone targets, allies, class features." },
-    { term: "Bonus Action", domain: "D&D", def: "A smaller extra action. One per turn. Monks use this constantly (Flurry, Patient Defense, Step of the Wind, free unarmed strike)." },
     { term: "DC (Difficulty Class)", domain: "D&D", def: "The target number you need to roll to succeed at something. 'DC 15 Persuasion' = roll d20 + 5 (yours) vs 15." },
-    { term: "Disadvantage", domain: "D&D", def: "Roll two d20s, keep the LOWER. Happens when you're impaired — prone, frightened, obscured, etc." },
-    { term: "Disengage", domain: "D&D", def: "Move without triggering opportunity attacks. You get this FREE as a bonus action via Patient Defense." },
-    { term: "Dodge", domain: "D&D", def: "Attackers have disadvantage against you; you have advantage on DEX saves. Lasts until your next turn." },
-    { term: "Focus Points (FP)", domain: "D&D", def: "Your Monk 'magic fuel'. You have 4. Spent on Flurry of Blows, paid Patient Defense, paid Step of the Wind, and redirecting Deflect Attacks." },
-    { term: "HP (Hit Points)", domain: "D&D", def: "Your health. At 0 you start making death saves. Yours max is 28." },
-    { term: "Initiative", domain: "D&D", def: "Roll d20 + DEX (+1) to decide turn order when combat starts." },
-    { term: "Long Rest", domain: "D&D", def: "8 hours of rest. Restores HP, FP, and Ring uses. Uncanny Metabolism resets." },
-    { term: "Martial Arts die", domain: "D&D", def: "Your Monk damage die. At level 4 it's a d6. Used for unarmed strike damage and Deflect Attacks redirect." },
-    { term: "Opportunity Attack", domain: "D&D", def: "When a creature leaves your melee reach without Disengaging, you can use your Reaction to make one melee attack against them." },
-    { term: "Prone", domain: "D&D", def: "Condition: you're on the ground. Attacks against you have advantage if in melee, disadvantage if from range. You have disadvantage on your attacks. Costs half your speed (20 ft) to stand up." },
-    { term: "Reaction", domain: "D&D", def: "A special response to a trigger. One per round. Yours include Deflect Attacks, Slow Fall, Opportunity Attack, and Ready-triggered actions." },
-    { term: "Saving throw", domain: "D&D", def: "A defensive roll vs an effect. You're proficient in STR, DEX, and INT saves. INT saves are rare but powerful." },
-    { term: "Short Rest", domain: "D&D", def: "An hour of light rest. For Monks: restores all Focus Points. Does NOT restore HP (without hit dice spending)." },
-    { term: "Skill check", domain: "D&D", def: "d20 + ability mod (+ prof bonus if proficient) vs a DC." },
+    { term: "Advantage / Disadvantage", domain: "D&D", def: "Advantage: roll two d20s, keep the HIGHER — when you have the upper hand (cover, prone targets, allies, class features). Disadvantage: roll two d20s, keep the LOWER — when you're impaired (prone, frightened, obscured, etc.). If you have both, they cancel and you roll one d20." },
 
     // Iosandros campaign
     { term: "SE (Standard Era)", domain: "Iosandros", def: "The dating system of the Realm. 0 SE = the Separation, when the Gods stripped magic from the world. Today is 1224 SE." },

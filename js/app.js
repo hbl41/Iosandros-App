@@ -34,6 +34,8 @@ const DEFAULT_STATE = () => ({
   ring: 3,
   metabolismUsed: false,
   advantagePicks: ['The Pendant Coast'],
+  advantageLocked: true,  // Locked by default — advantage picks are set at character creation
+
   date: { monthIdx: 0, day: 1, year: 1224 },
   budgetKingdom: 'Lorenthar',
   budgetSpent: {}, // { kingdomName: [spent0, spent1, spent2] }
@@ -43,6 +45,9 @@ const DEFAULT_STATE = () => ({
   tweaks: [], // [{ id, text, done, createdAt }]
   party: [],  // [{ id, name, role, category, tags, notes, createdAt, updatedAt }]
   campaignEvents: [], // [{ id, year, monthIdx, day, text, createdAt }]
+  playbookReorderMode: false,
+  playbookOrder: {}, // { 'Action': [name,name], 'Bonus Action': [...], 'Reaction': [...] }
+  playbookCardOpen: {}, // { cardName: true } — remembers which cards user has expanded
 });
 
 // Storage — prefer browser persistence; fall back to memory when blocked
@@ -543,6 +548,10 @@ $('#longRest').addEventListener('click', () => {
   save(); renderTrackers();
 });
 
+// Advantage picks lock toggle
+const advLockBtnEl = $('#advLockBtn');
+if (advLockBtnEl) advLockBtnEl.addEventListener('click', toggleAdvantageLock);
+
 // Reset all
 $('#resetAll').addEventListener('click', () => {
   if (!confirm('Reset HP, FP, Ring, budget, and notes to defaults? Advantage picks, date, and the tweaks list are kept.')) return;
@@ -764,6 +773,32 @@ function renderKingdoms() {
   TERRITORIES.forEach(t => tGrid.appendChild(kingdomCard(t, true)));
 
   $('#advCount').textContent = state.advantagePicks.length;
+  updateAdvantageLockUI();
+}
+
+function updateAdvantageLockUI() {
+  const btn = $('#advLockBtn');
+  if (!btn) return;
+  const locked = state.advantageLocked !== false; // default true
+  btn.textContent = locked ? '🔒 Locked' : '🔓 Lock picks';
+  btn.classList.toggle('locked', locked);
+  btn.setAttribute('aria-pressed', locked ? 'true' : 'false');
+  // Gray out kingdom cards visually so it's obvious they're not interactive right now
+  const grid = $('#kingdomGrid');
+  if (grid) grid.classList.toggle('picks-locked', locked);
+}
+
+function toggleAdvantageLock() {
+  const currentlyLocked = state.advantageLocked !== false;
+  if (currentlyLocked) {
+    // Unlocking — confirm
+    if (!confirm("Unlock your advantage picks? You shouldn't normally be able to change these.")) return;
+    state.advantageLocked = false;
+  } else {
+    state.advantageLocked = true;
+  }
+  save();
+  updateAdvantageLockUI();
 }
 function kingdomCard(k, isTerritory = false) {
   const isAdvantage = state.advantagePicks.includes(k.name);
@@ -801,6 +836,7 @@ function kingdomCard(k, isTerritory = false) {
 }
 function toggleAdvantage(name, isTerritory) {
   if (isTerritory) return; // only the 13 Kingdoms
+  if (state.advantageLocked !== false) return; // Locked — ignore taps
   const idx = state.advantagePicks.indexOf(name);
   if (idx >= 0) {
     state.advantagePicks.splice(idx, 1);
@@ -1198,30 +1234,52 @@ function renderPlaybook() {
   const mv = $('#pbMovement'); mv.innerHTML = ''; mv.appendChild(linkTerms(pb.turnCoach.movementNote));
   const bn = $('#pbBonusNote'); bn.innerHTML = ''; bn.appendChild(linkTerms(pb.turnCoach.bonusActionNote));
 
-  // Actions and Bonus Actions
+  // Order actions/bonus/reactions by user-saved preference if present
+  const orderList = (arr, slotKey) => {
+    const saved = (state.playbookOrder && state.playbookOrder[slotKey]) || [];
+    if (!saved.length) return arr;
+    const byName = new Map(arr.map(x => [x.name, x]));
+    const seen = new Set();
+    const out = [];
+    saved.forEach(n => { if (byName.has(n)) { out.push(byName.get(n)); seen.add(n); } });
+    arr.forEach(x => { if (!seen.has(x.name)) out.push(x); });
+    return out;
+  };
+
   const actList = $('#pbActions');
   const bonusList = $('#pbBonus');
   actList.innerHTML = '';
   bonusList.innerHTML = '';
-  pb.turnCoach.actions.forEach(a => {
-    const target = a.slot === 'Bonus Action' ? bonusList : actList;
-    target.appendChild(renderTurnCard(a));
-  });
+
+  const actionsOnly = pb.turnCoach.actions.filter(a => a.slot !== 'Bonus Action');
+  const bonusOnly = pb.turnCoach.actions.filter(a => a.slot === 'Bonus Action');
+
+  orderList(actionsOnly, 'Action').forEach(a => actList.appendChild(renderTurnCard(a)));
+  orderList(bonusOnly, 'Bonus Action').forEach(a => bonusList.appendChild(renderTurnCard(a)));
 
   // Reactions
   const reactList = $('#pbReactions');
   reactList.innerHTML = '';
-  pb.turnCoach.reactions.forEach(r => reactList.appendChild(renderTurnCard(r, true)));
+  orderList(pb.turnCoach.reactions, 'Reaction').forEach(r => reactList.appendChild(renderTurnCard(r, true)));
+
+  // Apply reorder-mode class + wire up DnD
+  updatePlaybookReorderUI();
 
   // Situations
   const sitGrid = $('#sitGrid');
   sitGrid.innerHTML = '';
   pb.situations.forEach(s => {
     const card = el('details', { class: 'sit-card' });
-    card.appendChild(el('summary', {},
+    const sum = el('summary', {},
       el('span', { class: 's-emoji', text: s.emoji }),
       el('span', { class: 's-label', text: s.label })
-    ));
+    );
+    card.appendChild(sum);
+    if (s.headline) {
+      const hl = el('div', { class: 's-headline' });
+      hl.appendChild(linkTerms(s.headline));
+      card.appendChild(hl);
+    }
     const plays = el('ol', { class: 's-plays' });
     s.plays.forEach(p => {
       const li = el('li');
@@ -1234,26 +1292,234 @@ function renderPlaybook() {
 
   renderGlossary();
 }
+
 function renderTurnCard(a, isReaction = false) {
-  const card = el('div', { class: 'turn-card' });
+  const slotKey = isReaction ? 'Reaction' : (a.slot || 'Action');
+  const isOpen = !!(state.playbookCardOpen && state.playbookCardOpen[a.name]);
+  const card = el('details', {
+    class: 'turn-card' + (a.source === 'universal' ? ' is-universal' : ' is-yours'),
+    'data-card-name': a.name,
+    'data-slot': slotKey,
+    'data-source': a.source || 'yours',
+    draggable: 'false',
+  });
+  if (isOpen) card.setAttribute('open', '');
+
+  // Summary row — always visible. Holds drag handle, name, source tag, cost, tldr.
+  const sum = el('summary', { class: 't-summary' });
+  // Block the default <summary> toggle while in reorder mode so taps don't accidentally expand cards.
+  sum.addEventListener('click', e => {
+    if (state.playbookReorderMode) { e.preventDefault(); }
+  });
+
+  const handle = el('span', { class: 't-handle', text: '⋮⋮', 'aria-hidden': 'true' });
+  sum.appendChild(handle);
+
   const head = el('div', { class: 't-head' });
-  // Make the card title itself explainable if it matches an abilityDetails key or alias
   const titleSpan = el('span', { class: 't-name', text: a.name });
   const titleKey = ALIAS_MAP.get(a.name.toLowerCase())
     || (Object.prototype.hasOwnProperty.call(PLAYBOOK.abilityDetails || {}, a.name) ? a.name : null);
   if (titleKey) makeExplainable(titleSpan, titleKey);
   head.appendChild(titleSpan);
+
+  if (a.source === 'universal') {
+    head.appendChild(el('span', { class: 't-tag universal', text: 'Universal' }));
+  } else {
+    head.appendChild(el('span', { class: 't-tag yours', text: 'Yours' }));
+  }
+
   if (a.cost) head.appendChild(el('span', { class: 't-cost', text: a.cost }));
-  card.appendChild(head);
-  const withLinks = (label, str) => {
+
+  if (a.tldr) {
+    const tldr = el('div', { class: 't-tldr' });
+    tldr.appendChild(linkTerms(a.tldr));
+    head.appendChild(tldr);
+  }
+
+  sum.appendChild(head);
+  card.appendChild(sum);
+
+  // Expanded body
+  const body = el('div', { class: 't-body' });
+  const withLinks = (cls, labelText, str) => {
     const wrap = el('span');
     wrap.appendChild(linkTerms(str));
-    return el('div', { class: label.class }, el('span', { class: 't-l', text: label.text }), wrap);
+    return el('div', { class: cls }, el('span', { class: 't-l', text: labelText }), wrap);
   };
-  if (a.what) card.appendChild(withLinks({ class: 't-what', text: 'What' }, a.what));
-  if (a.when) card.appendChild(withLinks({ class: 't-when', text: 'When' }, a.when));
-  if (a.tip)  card.appendChild(withLinks({ class: 't-tip',  text: 'Tip'  }, a.tip));
+  if (a.what) body.appendChild(withLinks('t-what', 'What', a.what));
+  if (a.when) body.appendChild(withLinks('t-when', 'When', a.when));
+  if (a.tip)  body.appendChild(withLinks('t-tip',  'Tip',  a.tip));
+  card.appendChild(body);
+
+  // Persist open/close
+  card.addEventListener('toggle', () => {
+    if (!state.playbookCardOpen) state.playbookCardOpen = {};
+    if (card.open) state.playbookCardOpen[a.name] = true;
+    else delete state.playbookCardOpen[a.name];
+    save();
+  });
+
   return card;
+}
+
+// ---- Playbook reorder mode ----
+function updatePlaybookReorderUI() {
+  const btn = $('#pbReorderBtn');
+  const reordering = !!state.playbookReorderMode;
+  const turnPanel = $('#pb-turn');
+  if (turnPanel) turnPanel.classList.toggle('reorder-mode', reordering);
+  if (btn) {
+    btn.textContent = reordering ? '✓ Done reordering' : '⋮⋮ Reorder';
+    btn.setAttribute('aria-pressed', reordering ? 'true' : 'false');
+    btn.classList.toggle('active', reordering);
+  }
+
+  // Remove or re-install an optional reset link next to the button
+  let reset = document.getElementById('pbResetOrderBtn');
+  if (reordering) {
+    if (!reset && btn && btn.parentNode) {
+      reset = el('button', {
+        id: 'pbResetOrderBtn',
+        class: 'btn small link-btn pb-reset-order',
+        type: 'button',
+        text: 'Reset order'
+      });
+      reset.addEventListener('click', () => {
+        if (!confirm('Reset all Playbook card orders to defaults?')) return;
+        state.playbookOrder = {};
+        save();
+        renderPlaybook();
+      });
+      btn.parentNode.insertBefore(reset, btn.nextSibling);
+    }
+  } else if (reset) {
+    reset.remove();
+  }
+
+  // Wire each list for drag-and-drop when in reorder mode
+  ['#pbActions', '#pbBonus', '#pbReactions'].forEach(sel => {
+    const list = document.querySelector(sel);
+    if (!list) return;
+    wireListForReorder(list, reordering);
+  });
+}
+
+function wireListForReorder(list, enabled) {
+  Array.from(list.children).forEach(card => {
+    card.setAttribute('draggable', enabled ? 'true' : 'false');
+  });
+  // Avoid double-binding
+  if (list._reorderBound) return;
+  list._reorderBound = true;
+
+  let dragged = null;
+
+  list.addEventListener('dragstart', e => {
+    const card = e.target.closest('.turn-card');
+    if (!card || !state.playbookReorderMode) return;
+    dragged = card;
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', card.dataset.cardName || ''); } catch {}
+  });
+
+  list.addEventListener('dragover', e => {
+    if (!dragged || !state.playbookReorderMode) return;
+    e.preventDefault();
+    const after = getDragAfterElement(list, e.clientY);
+    if (after == null) list.appendChild(dragged);
+    else list.insertBefore(dragged, after);
+  });
+
+  list.addEventListener('dragend', () => {
+    if (!dragged) return;
+    dragged.classList.remove('dragging');
+    dragged = null;
+    saveListOrder(list);
+  });
+
+  // Touch fallback for iOS: long-press then drag via pointer events
+  let touchCard = null;
+  let touchStartY = 0;
+  let longPressTimer = null;
+  const LONG_PRESS_MS = 350;
+
+  list.addEventListener('touchstart', e => {
+    if (!state.playbookReorderMode) return;
+    const card = e.target.closest('.turn-card');
+    if (!card) return;
+    touchStartY = e.touches[0].clientY;
+    longPressTimer = setTimeout(() => {
+      touchCard = card;
+      card.classList.add('dragging');
+    }, LONG_PRESS_MS);
+  }, { passive: true });
+
+  list.addEventListener('touchmove', e => {
+    if (!state.playbookReorderMode) return;
+    if (!touchCard) {
+      if (longPressTimer && Math.abs(e.touches[0].clientY - touchStartY) > 10) {
+        clearTimeout(longPressTimer);
+      }
+      return;
+    }
+    e.preventDefault();
+    const y = e.touches[0].clientY;
+    const after = getDragAfterElement(list, y);
+    if (after == null) list.appendChild(touchCard);
+    else list.insertBefore(touchCard, after);
+  }, { passive: false });
+
+  list.addEventListener('touchend', () => {
+    clearTimeout(longPressTimer);
+    if (!touchCard) return;
+    touchCard.classList.remove('dragging');
+    saveListOrder(list);
+    touchCard = null;
+  });
+  list.addEventListener('touchcancel', () => {
+    clearTimeout(longPressTimer);
+    if (touchCard) touchCard.classList.remove('dragging');
+    touchCard = null;
+  });
+}
+
+function getDragAfterElement(container, y) {
+  const cards = Array.from(container.querySelectorAll('.turn-card:not(.dragging)'));
+  let closest = { offset: Number.NEGATIVE_INFINITY, elem: null };
+  for (const c of cards) {
+    const box = c.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) closest = { offset, elem: c };
+  }
+  return closest.elem;
+}
+
+function saveListOrder(list) {
+  const slot = list.id === 'pbActions' ? 'Action'
+            : list.id === 'pbBonus' ? 'Bonus Action'
+            : list.id === 'pbReactions' ? 'Reaction' : null;
+  if (!slot) return;
+  const names = Array.from(list.querySelectorAll('.turn-card'))
+    .map(c => c.dataset.cardName)
+    .filter(Boolean);
+  if (!state.playbookOrder) state.playbookOrder = {};
+  state.playbookOrder[slot] = names;
+  save();
+}
+
+// Wire the reorder toggle button (button exists in static HTML; app.js runs at end of body).
+{
+  const pbReorderBtn = document.getElementById('pbReorderBtn');
+  if (pbReorderBtn) pbReorderBtn.addEventListener('click', () => {
+    state.playbookReorderMode = !state.playbookReorderMode;
+    // Close all open cards during reorder to prevent accidental expand
+    if (state.playbookReorderMode) {
+      document.querySelectorAll('#pb-turn .turn-card[open]').forEach(c => c.removeAttribute('open'));
+    }
+    save();
+    updatePlaybookReorderUI();
+  });
 }
 
 function renderGlossary() {
@@ -1962,6 +2228,97 @@ renderHistory = function (filter = '') {
 // ========================================================
 //  BOOT
 // ========================================================
+// ========================================================
+//  EDITABLE PAGE CAPTIONS
+// ========================================================
+// Minimal inline markdown -> HTML: **bold**, *italic*, <b>/<i> already allowed
+function captionMarkdown(s) {
+  // Escape HTML except <b>, <i>, <em>, <strong>
+  let out = String(s || '').replace(/[&<>]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[ch]);
+  // Restore whitelisted tags
+  out = out.replace(/&lt;(\/?)(b|i|em|strong)&gt;/gi, '<$1$2>');
+  // Markdown bold and italic
+  out = out.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+  out = out.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<i>$2</i>');
+  return out;
+}
+
+// Convert existing HTML inside a caption back to the markdown-ish source for editing
+function captionHtmlToSource(html) {
+  let s = String(html || '');
+  s = s.replace(/<\s*b\s*>/gi, '**').replace(/<\s*\/\s*b\s*>/gi, '**');
+  s = s.replace(/<\s*strong\s*>/gi, '**').replace(/<\s*\/\s*strong\s*>/gi, '**');
+  s = s.replace(/<\s*i\s*>/gi, '*').replace(/<\s*\/\s*i\s*>/gi, '*');
+  s = s.replace(/<\s*em\s*>/gi, '*').replace(/<\s*\/\s*em\s*>/gi, '*');
+  // Decode the handful of entities we produced
+  s = s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  return s.trim();
+}
+
+function applyCaptionOverrides() {
+  if (!state.captionOverrides) state.captionOverrides = {};
+  $$('.page-caption').forEach(p => {
+    const id = p.getAttribute('data-caption-id');
+    if (!id) return;
+    // Cache the default HTML once so we can restore if the user clears their override
+    if (!p.dataset.defaultHtml) p.dataset.defaultHtml = p.innerHTML.replace(/<button class="caption-edit-btn"[\s\S]*?<\/button>/, '').trim();
+    const override = state.captionOverrides[id];
+    const html = (override != null && override !== '') ? captionMarkdown(override) : p.dataset.defaultHtml;
+    // Rebuild inner structure: rendered text + pencil button
+    p.innerHTML = html + ' <button class="caption-edit-btn" type="button" aria-label="Edit caption" title="Edit caption">✎</button>';
+    const btn = p.querySelector('.caption-edit-btn');
+    if (btn) btn.addEventListener('click', () => openCaptionEditor(p, id));
+  });
+}
+
+function openCaptionEditor(paragraph, id) {
+  // Avoid stacking editors
+  if (paragraph.nextElementSibling && paragraph.nextElementSibling.classList.contains('caption-editor')) return;
+  const currentSource = (state.captionOverrides && state.captionOverrides[id] != null && state.captionOverrides[id] !== '')
+    ? state.captionOverrides[id]
+    : captionHtmlToSource(paragraph.dataset.defaultHtml || paragraph.innerHTML);
+
+  const editor = el('div', { class: 'caption-editor' });
+  const textarea = el('textarea', { id: 'captionEdit_' + id });
+  textarea.value = currentSource;
+  const actions = el('div', { class: 'caption-editor-actions' });
+  const saveBtn = el('button', { class: 'btn primary', text: 'Save' });
+  const cancelBtn = el('button', { class: 'btn small', text: 'Cancel' });
+  const resetBtn = el('button', { class: 'btn small', text: 'Reset to default' });
+  const hint = el('span', { class: 'caption-editor-hint', text: '**bold**  *italic*' });
+  actions.appendChild(saveBtn);
+  actions.appendChild(cancelBtn);
+  actions.appendChild(resetBtn);
+  actions.appendChild(hint);
+  editor.appendChild(textarea);
+  editor.appendChild(actions);
+  paragraph.insertAdjacentElement('afterend', editor);
+  paragraph.hidden = true;
+  setTimeout(() => textarea.focus(), 30);
+
+  const close = () => { editor.remove(); paragraph.hidden = false; };
+  cancelBtn.addEventListener('click', close);
+  saveBtn.addEventListener('click', () => {
+    if (!state.captionOverrides) state.captionOverrides = {};
+    state.captionOverrides[id] = textarea.value;
+    save();
+    applyCaptionOverrides();
+    close();
+  });
+  resetBtn.addEventListener('click', () => {
+    if (state.captionOverrides && id in state.captionOverrides) {
+      delete state.captionOverrides[id];
+      save();
+    }
+    applyCaptionOverrides();
+    close();
+  });
+  textarea.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); close(); }
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); saveBtn.click(); }
+  });
+}
+
 function renderAll() {
   applyTheme();
   renderCharacter();
@@ -1978,6 +2335,7 @@ function renderAll() {
   renderTweaks();
   activateTab(state.tab);
   updateSyncUI();
+  applyCaptionOverrides();
 }
 renderAll();
 if (syncMeta.code && firebaseConfig) startSyncLive();
