@@ -910,29 +910,145 @@ $('#currentYear').addEventListener('change', e => {
 });
 
 // ========================================================
-//  CONNECTIONS
+//  CONNECTIONS + EMPLOYEES (editable, state-backed)
 // ========================================================
+let _connEditId = null;
+
+// Seed state.connections from the hard-coded CONNECTIONS array on first run.
+// Once seeded, state is the source of truth so edits persist + sync.
+function ensureConnectionsSeeded() {
+  if (!Array.isArray(state.connections)) state.connections = [];
+  if (state.connections.length === 0 && Array.isArray(CONNECTIONS)) {
+    state.connections = CONNECTIONS.map((c, i) => ({
+      id: 'c_seed_' + i + '_' + Math.random().toString(36).slice(2, 7),
+      name: c.name || '',
+      role: c.role || '',
+      notes: c.notes || '',
+      tags: Array.isArray(c.tags) ? c.tags.slice() : [],
+      // Derive section from the legacy tag so existing entries land in the right grid
+      section: (c.tags || []).includes('Employee') ? 'Employee' : 'Connection',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    }));
+    save();
+  }
+}
+
 function renderConnections(filter = '') {
+  ensureConnectionsSeeded();
   const f = filter.toLowerCase().trim();
-  const connGrid = $('#connGrid'); connGrid.innerHTML = '';
-  const empGrid = $('#empGrid'); empGrid.innerHTML = '';
-  CONNECTIONS.forEach(c => {
-    const match = !f || [c.name, c.role, c.notes, ...(c.tags || [])].join(' ').toLowerCase().includes(f);
-    if (!match) return;
-    const card = el('div', { class: 'conn-card' });
-    card.appendChild(el('div', { class: 'c-name', text: c.name }));
-    card.appendChild(el('div', { class: 'c-role', text: c.role }));
-    card.appendChild(el('div', { class: 'c-notes', text: c.notes }));
-    if (c.tags && c.tags.length) {
+  const connGrid = $('#connGrid'); if (connGrid) connGrid.innerHTML = '';
+  const empGrid = $('#empGrid'); if (empGrid) empGrid.innerHTML = '';
+
+  const list = (state.connections || []).slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+  // Dynamic tag filter chips (skip the Connection/Employee section tags — those are the grid split)
+  const filterRow = $('#connFilters');
+  if (filterRow) {
+    const allTags = new Set(['All']);
+    list.forEach(c => (c.tags || []).forEach(t => {
+      if (t && t !== 'Connection' && t !== 'Employee') allTags.add(t);
+    }));
+    if (!state.connTagFilter || !allTags.has(state.connTagFilter)) state.connTagFilter = 'All';
+    filterRow.innerHTML = '';
+    if (allTags.size > 1) {
+      [...allTags].forEach(tag => {
+        filterRow.appendChild(el('button', {
+          class: 'chip' + (state.connTagFilter === tag ? ' active' : ''),
+          onclick: () => { state.connTagFilter = tag; save(); renderConnections($('#connFilter').value); },
+          text: tag,
+        }));
+      });
+    }
+  }
+  const activeTag = state.connTagFilter || 'All';
+
+  list.forEach(c => {
+    const matchText = !f || [c.name, c.role, c.notes, ...(c.tags || [])].join(' ').toLowerCase().includes(f);
+    const matchTag = activeTag === 'All' || (c.tags || []).includes(activeTag);
+    if (!matchText || !matchTag) return;
+    const card = el('div', { class: 'conn-card', role: 'button', tabindex: '0',
+      onclick: () => openConnDialog(c.id),
+      onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openConnDialog(c.id); } },
+    });
+    if (c.name) card.appendChild(el('div', { class: 'c-name', text: c.name }));
+    if (c.role) card.appendChild(el('div', { class: 'c-role', text: c.role }));
+    if (c.notes) card.appendChild(el('div', { class: 'c-notes', text: c.notes }));
+    const displayTags = (c.tags || []).filter(t => t !== 'Connection' && t !== 'Employee');
+    if (displayTags.length) {
       const tags = el('div', { class: 'k-tags' });
-      c.tags.forEach(t => tags.appendChild(el('span', { class: 'k-tag', text: t })));
+      displayTags.forEach(t => tags.appendChild(el('span', { class: 'k-tag', text: t })));
       card.appendChild(tags);
     }
-    if ((c.tags || []).includes('Employee')) empGrid.appendChild(card);
-    else connGrid.appendChild(card);
+    const section = c.section || ((c.tags || []).includes('Employee') ? 'Employee' : 'Connection');
+    if (section === 'Employee' && empGrid) empGrid.appendChild(card);
+    else if (connGrid) connGrid.appendChild(card);
   });
 }
+
+function openConnDialog(id) {
+  _connEditId = id || null;
+  const overlay = $('#connOverlay'); if (!overlay) return;
+  const existing = id ? (state.connections || []).find(c => c.id === id) : null;
+  $('#connDialogTitle').textContent = existing ? 'Edit — ' + (existing.name || '(unnamed)') : 'Add connection / employee';
+  $('#connName').value = existing ? (existing.name || '') : '';
+  $('#connRole').value = existing ? (existing.role || '') : '';
+  $('#connSection').value = existing ? (existing.section || 'Connection') : 'Connection';
+  $('#connTags').value = existing && existing.tags
+    ? existing.tags.filter(t => t !== 'Connection' && t !== 'Employee').join(', ')
+    : '';
+  $('#connNotes').value = existing ? (existing.notes || '') : '';
+  $('#connDelete').hidden = !existing;
+  overlay.hidden = false;
+  setTimeout(() => $('#connName').focus(), 50);
+}
+
+function closeConnDialog() {
+  const overlay = $('#connOverlay'); if (overlay) overlay.hidden = true;
+  _connEditId = null;
+}
+
+function saveConnFromDialog() {
+  if (!Array.isArray(state.connections)) state.connections = [];
+  const name = $('#connName').value.trim();
+  if (!name) { alert('Name required.'); return; }
+  const role = $('#connRole').value.trim();
+  const section = $('#connSection').value || 'Connection';
+  const tags = $('#connTags').value.split(',').map(s => s.trim()).filter(Boolean);
+  const notes = $('#connNotes').value.trim();
+  if (_connEditId) {
+    const c = state.connections.find(x => x.id === _connEditId);
+    if (c) {
+      c.name = name; c.role = role; c.section = section; c.tags = tags; c.notes = notes;
+      c.updatedAt = Date.now();
+    }
+  } else {
+    state.connections.push({
+      id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      name, role, section, tags, notes,
+      createdAt: Date.now(), updatedAt: Date.now(),
+    });
+  }
+  save();
+  closeConnDialog();
+  renderConnections($('#connFilter').value);
+}
+
+function deleteConnFromDialog() {
+  if (!_connEditId) return;
+  if (!confirm('Delete this entry?')) return;
+  state.connections = (state.connections || []).filter(c => c.id !== _connEditId);
+  save();
+  closeConnDialog();
+  renderConnections($('#connFilter').value);
+}
+
 $('#connFilter').addEventListener('input', e => renderConnections(e.target.value));
+$('#connAdd').addEventListener('click', () => openConnDialog(null));
+$('#connClose').addEventListener('click', closeConnDialog);
+$('#connSave').addEventListener('click', saveConnFromDialog);
+$('#connDelete').addEventListener('click', deleteConnFromDialog);
+$('#connOverlay').addEventListener('click', e => { if (e.target.id === 'connOverlay') closeConnDialog(); });
 
 // ========================================================
 //  GLOBAL SEARCH
@@ -952,8 +1068,12 @@ function globalSearch(query) {
       hits.push({ kind: h.year, title: h.title, snippet: h.body.slice(0, 100) + '…', tab: 'history' });
     }
   });
-  CONNECTIONS.forEach(c => {
-    if ([c.name, c.role, c.notes].join(' ').toLowerCase().includes(q)) {
+  // Search state.connections (editable) — fall back to static CONNECTIONS if not yet seeded
+  const connSource = (Array.isArray(state.connections) && state.connections.length)
+    ? state.connections
+    : (Array.isArray(CONNECTIONS) ? CONNECTIONS : []);
+  connSource.forEach(c => {
+    if ([c.name, c.role, c.notes, ...(c.tags || [])].join(' ').toLowerCase().includes(q)) {
       hits.push({ kind: 'Contact', title: c.name, snippet: c.role, tab: 'connections' });
     }
   });
@@ -1620,12 +1740,34 @@ function renderParty(filter = '') {
   groups.innerHTML = '';
   const f = filter.toLowerCase().trim();
   const list = (state.party || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+
+  // Build dynamic tag filter chips (like the 13 Kingdoms page)
+  const filterRow = $('#partyFilters');
+  if (filterRow) {
+    const allTags = new Set(['All']);
+    list.forEach(p => (p.tags || []).forEach(t => { if (t) allTags.add(t); }));
+    if (!state.partyTagFilter || !allTags.has(state.partyTagFilter)) state.partyTagFilter = 'All';
+    filterRow.innerHTML = '';
+    // Only show the chip row if there's at least one user-defined tag
+    if (allTags.size > 1) {
+      [...allTags].forEach(tag => {
+        filterRow.appendChild(el('button', {
+          class: 'chip' + (state.partyTagFilter === tag ? ' active' : ''),
+          onclick: () => { state.partyTagFilter = tag; save(); renderParty($('#partyFilter').value); },
+          text: tag,
+        }));
+      });
+    }
+  }
+  const activeTag = state.partyTagFilter || 'All';
+
   if (!list.length) {
     groups.appendChild(el('p', { class: 'muted', text: 'No party members or NPCs yet. Click + Add to start.' }));
     return;
   }
   PARTY_CATEGORIES.forEach(cat => {
     const inGroup = list.filter(p => (p.category || 'NPC') === cat
+      && (activeTag === 'All' || (p.tags || []).includes(activeTag))
       && (!f || [p.name, p.role, p.notes, ...(p.tags || [])].join(' ').toLowerCase().includes(f)));
     if (!inGroup.length) return;
     const section = el('section', { class: 'party-group' });

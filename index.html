@@ -42,7 +42,7 @@
       <span class="brand-divider"></span>
       <span class="brand-name">Caeto Antulken</span>
       <span class="brand-divider"></span>
-      <span class="last-updated" id="lastUpdated" title="Last deployed version">Updated Apr 23, 2026 7:56PM CDT</span>
+      <span class="last-updated" id="lastUpdated" title="Last deployed version">Updated Apr 23, 2026 9:30PM CDT</span>
     </div>
 
     <div class="tracker-strip" aria-label="Quick status">
@@ -500,6 +500,8 @@
       </div>
     </header>
 
+    <div class="filter-row" id="partyFilters" aria-label="Filter by tag"></div>
+
     <div class="party-groups" id="partyGroups"></div>
   </div>
 
@@ -511,8 +513,13 @@
         <h1>Connections &amp; Employees</h1>
         <p>Elites who have purchased — and now quietly help move — illegal Dead-World magical artifacts. And the crew of Golden Basin Goods.</p>
       </div>
-      <input type="search" class="search-input" id="connFilter" style="max-width: 260px" placeholder="Filter contacts…" aria-label="Filter connections" />
+      <div class="btn-row">
+        <input type="search" class="search-input" id="connFilter" style="max-width: 260px" placeholder="Filter contacts…" aria-label="Filter connections" />
+        <button class="btn primary" id="connAdd">+ Add</button>
+      </div>
     </header>
+
+    <div class="filter-row" id="connFilters" aria-label="Filter by tag"></div>
 
     <h2 class="card-title">Connections</h2>
     <div class="connection-grid" id="connGrid"></div>
@@ -527,6 +534,40 @@
     <p class="muted italic small mt-4">Overland dividing line (W→E): Southern Border of Lorenthar → Northern Border of Garrondel → Northern Border of the Pendant Coast.</p>
   </div>
 </section>
+
+<!-- Connection / Employee edit dialog -->
+<div class="sync-dialog-overlay" id="connOverlay" hidden>
+  <div class="sync-dialog" role="dialog" aria-labelledby="connDialogTitle">
+    <div class="sync-header">
+      <h2 id="connDialogTitle">Add / Edit</h2>
+      <button class="icon-btn" id="connClose" aria-label="Close">×</button>
+    </div>
+    <div class="party-form">
+      <label class="party-field"><span>Name</span>
+        <input type="text" id="connName" class="search-input" placeholder="e.g. Captain Kellogg Krail" />
+      </label>
+      <label class="party-field"><span>Role / Short description</span>
+        <input type="text" id="connRole" class="search-input" placeholder="e.g. Eastern Shore Maritime Freight Director" />
+      </label>
+      <label class="party-field"><span>Section</span>
+        <select id="connSection" class="search-input">
+          <option value="Connection">Connection</option>
+          <option value="Employee">Employee</option>
+        </select>
+      </label>
+      <label class="party-field"><span>Tags (comma-separated)</span>
+        <input type="text" id="connTags" class="search-input" placeholder="e.g. Elite, Veltharion, Trusted" />
+      </label>
+      <label class="party-field"><span>Notes</span>
+        <textarea id="connNotes" class="notes-area" style="min-height: 140px" placeholder="What you know about them, history together, leverage, quirks."></textarea>
+      </label>
+      <div class="btn-row">
+        <button class="btn primary" id="connSave">Save</button>
+        <button class="btn small danger" id="connDelete" hidden>Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Party edit dialog -->
 <div class="sync-dialog-overlay" id="partyOverlay" hidden>
