@@ -311,6 +311,22 @@ h1,h2,h3,h4,h5,h6 {
   margin-bottom: 2px;
 }
 .search-result .r-snippet { color: var(--color-text-muted); }
+.search-result.is-active {
+  background: var(--color-primary-soft);
+  outline: 1px solid var(--color-primary);
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 /* ============ TABS ============ */
 .tabs {
@@ -1779,6 +1795,23 @@ progress { width: 100%; height: 6px; }
   backdrop-filter: blur(3px);
 }
 .sync-dialog-overlay[hidden] { display: none; }
+
+.cmd-overlay { z-index: 950; }
+.cmd-dialog { max-width: 720px; }
+.cmd-input {
+  margin-top: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.cmd-results {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-bg) 70%, var(--color-border));
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.cmd-results .search-result {
+  border-bottom-color: var(--color-border);
+}
 .sync-dialog {
   background: var(--color-surface);
   border: 1px solid var(--color-primary);

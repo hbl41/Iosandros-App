@@ -1121,59 +1121,139 @@ $('#connOverlay').addEventListener('click', e => { if (e.target.id === 'connOver
 // ========================================================
 //  GLOBAL SEARCH
 // ========================================================
-function globalSearch(query) {
-  const q = query.toLowerCase().trim();
-  const results = $('#searchResults');
-  if (!q) { results.classList.remove('open'); results.innerHTML = ''; return; }
-  const hits = [];
-  KINGDOMS.concat(TERRITORIES).forEach(k => {
-    if ([k.name, k.house, k.capital, k.desc].filter(Boolean).join(' ').toLowerCase().includes(q)) {
-      hits.push({ kind: 'Kingdom', title: k.name, snippet: k.capital + ' · House ' + (k.house || '—'), tab: 'kingdoms' });
+function normalizeSearchText(value) {
+  return String(value || '').toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function fuzzyScore(query, haystack) {
+  const q = normalizeSearchText(query);
+  const h = normalizeSearchText(haystack);
+  if (!q || !h) return 0;
+  if (h.includes(q)) {
+    // Strong score for exact substring, with slight reward for earlier matches.
+    return 600 - Math.min(h.indexOf(q), 200);
+  }
+  // Token contains score (good for partial words / small typos)
+  const qTokens = q.split(' ').filter(Boolean);
+  const hTokens = h.split(' ').filter(Boolean);
+  let tokenHits = 0;
+  qTokens.forEach(t => {
+    if (hTokens.some(ht => ht.includes(t) || levenshtein(t, ht) <= 1)) tokenHits += 1;
+  });
+  // Subsequence score (for rough fuzzy typing).
+  let qi = 0;
+  let chain = 0;
+  let maxChain = 0;
+  for (let i = 0; i < h.length && qi < q.length; i++) {
+    if (h[i] === q[qi]) { qi += 1; chain += 1; maxChain = Math.max(maxChain, chain); }
+    else chain = 0;
+  }
+  const subseq = qi / q.length;
+  if (subseq < 0.72 && tokenHits === 0) return 0;
+  return Math.round(tokenHits * 120 + subseq * 180 + maxChain * 3);
+}
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  const al = a.length, bl = b.length;
+  if (!al) return bl;
+  if (!bl) return al;
+  const prev = Array(bl + 1).fill(0).map((_, i) => i);
+  for (let i = 1; i <= al; i++) {
+    let diag = i - 1;
+    prev[0] = i;
+    for (let j = 1; j <= bl; j++) {
+      const old = prev[j];
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      prev[j] = Math.min(prev[j] + 1, prev[j - 1] + 1, diag + cost);
+      diag = old;
     }
+  }
+  return prev[bl];
+}
+function jumpToTab(tab, opts = {}) {
+  if (opts.historyTitle) _historyHighlight = opts.historyTitle;
+  activateTab(tab);
+  if (tab === 'history') renderHistory($('#historyFilter').value);
+}
+function searchCorpus() {
+  const corpus = [];
+  KINGDOMS.concat(TERRITORIES).forEach(k => {
+    corpus.push({
+      kind: 'Kingdom',
+      title: k.name,
+      snippet: `${k.capital || '—'} · House ${k.house || '—'}`,
+      text: [k.name, k.house, k.capital, k.desc, ...(k.tags || [])].filter(Boolean).join(' '),
+      run: () => jumpToTab('kingdoms'),
+    });
   });
   HISTORY.forEach(h => {
-    if ([h.year, h.title, h.body].join(' ').toLowerCase().includes(q)) {
-      hits.push({ kind: h.year, title: h.title, snippet: h.body.slice(0, 100) + '…', tab: 'history' });
-    }
+    corpus.push({
+      kind: h.year,
+      title: h.title,
+      snippet: (h.body || '').slice(0, 100) + '…',
+      text: [h.year, h.title, h.body, ...(h.tags || [])].filter(Boolean).join(' '),
+      run: () => jumpToTab('history', { historyTitle: h.title }),
+    });
   });
-  // Search state.connections (editable) — fall back to static CONNECTIONS if not yet seeded
   const connSource = (Array.isArray(state.connections) && state.connections.length)
     ? state.connections
     : (Array.isArray(CONNECTIONS) ? CONNECTIONS : []);
   connSource.forEach(c => {
-    if ([c.name, c.role, c.notes, ...(c.tags || [])].join(' ').toLowerCase().includes(q)) {
-      hits.push({ kind: 'Contact', title: c.name, snippet: c.role, tab: 'connections' });
-    }
+    corpus.push({
+      kind: 'Contact',
+      title: c.name || 'Unnamed',
+      snippet: c.role || 'Connection',
+      text: [c.name, c.role, c.notes, ...(c.tags || [])].filter(Boolean).join(' '),
+      run: () => jumpToTab('connections'),
+    });
   });
   CHARACTER.traits.forEach(t => {
-    if ((t.name + ' ' + t.text).toLowerCase().includes(q)) {
-      hits.push({ kind: 'Trait', title: t.name, snippet: t.text.slice(0, 100) + '…', tab: 'character' });
-    }
-  });
-  results.innerHTML = '';
-  if (!hits.length) {
-    results.appendChild(el('div', { class: 'search-result', text: 'No results.' }));
-  } else {
-    hits.slice(0, 30).forEach(h => {
-      results.appendChild(el('button', {
-        class: 'search-result',
-        onclick: () => {
-          if (h.tab === 'history') {
-            _historyHighlight = h.title;
-          }
-          activateTab(h.tab);
-          $('#globalSearch').value = '';
-          results.classList.remove('open');
-          // Re-render history so the highlight fires (activateTab alone won't)
-          if (h.tab === 'history') renderHistory($('#historyFilter').value);
-        }
-      },
-        el('div', { class: 'r-kind', text: h.kind }),
-        el('div', { class: 'r-title', text: h.title }),
-        el('div', { class: 'r-snippet', text: h.snippet })
-      ));
+    corpus.push({
+      kind: 'Trait',
+      title: t.name,
+      snippet: (t.text || '').slice(0, 100) + '…',
+      text: [t.name, t.text].join(' '),
+      run: () => jumpToTab('character'),
     });
+  });
+  return corpus;
+}
+function getSearchHits(query, limit = 30) {
+  const q = query.trim();
+  if (!q) return [];
+  return searchCorpus()
+    .map(item => ({ ...item, _score: fuzzyScore(q, `${item.title} ${item.text}`) }))
+    .filter(item => item._score > 0)
+    .sort((a, b) => b._score - a._score)
+    .slice(0, limit);
+}
+function renderSearchResults(listEl, hits, emptyText, onPick) {
+  listEl.innerHTML = '';
+  if (!hits.length) {
+    listEl.appendChild(el('div', { class: 'search-result', text: emptyText || 'No results.' }));
+    return;
   }
+  hits.forEach((h, idx) => {
+    listEl.appendChild(el('button', {
+      class: 'search-result',
+      role: 'option',
+      'aria-selected': idx === 0 ? 'true' : 'false',
+      onclick: () => onPick(h),
+    },
+      el('div', { class: 'r-kind', text: h.kind }),
+      el('div', { class: 'r-title', text: h.title }),
+      el('div', { class: 'r-snippet', text: h.snippet })
+    ));
+  });
+}
+function globalSearch(query) {
+  const results = $('#searchResults');
+  const hits = getSearchHits(query, 30);
+  if (!query.trim()) { results.classList.remove('open'); results.innerHTML = ''; return; }
+  renderSearchResults(results, hits, 'No results.', hit => {
+    hit.run();
+    $('#globalSearch').value = '';
+    results.classList.remove('open');
+  });
   results.classList.add('open');
 }
 $('#globalSearch').addEventListener('input', e => globalSearch(e.target.value));
@@ -1181,10 +1261,96 @@ $('#globalSearch').addEventListener('focus', e => { if (e.target.value) globalSe
 document.addEventListener('click', e => {
   if (!e.target.closest('.search-wrap')) $('#searchResults').classList.remove('open');
 });
-// Cmd/Ctrl-K focuses search
+
+// ========================================================
+//  COMMAND PALETTE (Cmd/Ctrl+K)
+// ========================================================
+const CMD_ACTIONS = [
+  { kind: 'Go to', title: 'Character', snippet: 'Open Character tab', text: 'character sheet stats traits', run: () => jumpToTab('character') },
+  { kind: 'Go to', title: 'Playbook', snippet: 'Open Playbook tab', text: 'playbook turn coach glossary', run: () => jumpToTab('playbook') },
+  { kind: 'Go to', title: 'Play Trackers', snippet: 'Open Trackers tab', text: 'trackers hp fp ring notes', run: () => jumpToTab('trackers') },
+  { kind: 'Go to', title: '13 Kingdoms', snippet: 'Open Kingdoms tab', text: 'kingdoms territories houses map realm', run: () => jumpToTab('kingdoms') },
+  { kind: 'Go to', title: 'History', snippet: 'Open History timeline', text: 'history timeline events eras wars', run: () => jumpToTab('history') },
+  { kind: 'Go to', title: 'Calendar', snippet: 'Open Calendar tab', text: 'calendar date campaign events', run: () => jumpToTab('calendar') },
+  { kind: 'Go to', title: 'People', snippet: 'Open Party & Connections tab', text: 'people party npcs connections', run: () => jumpToTab('people') },
+  { kind: 'Go to', title: 'Map', snippet: 'Open map tab', text: 'map zoom pan travel', run: () => jumpToTab('map') },
+  { kind: 'Go to', title: 'Tweaks', snippet: 'Open Tweaks tab', text: 'tweaks backlog todo', run: () => jumpToTab('tweaks') },
+  { kind: 'Action', title: 'Add Calendar Event', snippet: 'Jump to Calendar and focus new event input', text: 'new event add event calendar log', run: () => { jumpToTab('calendar'); setTimeout(() => $('#eventInput')?.focus(), 80); } },
+  { kind: 'Action', title: 'Add Party / NPC', snippet: 'Jump to People and open Add Party dialog', text: 'add party npc person people', run: () => { jumpToTab('people'); activateSubTab('party'); setTimeout(() => openPartyDialog(null), 80); } },
+  { kind: 'Action', title: 'Add Connection', snippet: 'Jump to People and open Add Connection dialog', text: 'add connection contact employee', run: () => { jumpToTab('people'); activateSubTab('connections'); setTimeout(() => openConnDialog(null), 80); } },
+  { kind: 'Action', title: 'Open Cloud Sync', snippet: 'Open cloud sync dialog', text: 'sync cloud backup firebase', run: () => { $('#syncOverlay').hidden = false; updateSyncUI(); setSyncMsg(''); } },
+  { kind: 'Action', title: 'Download Backup', snippet: 'Export current state as JSON', text: 'download backup export json save', run: () => downloadBackup() },
+];
+let _cmdIndex = 0;
+let _cmdHits = [];
+function closeCommandPalette() {
+  $('#cmdOverlay').hidden = true;
+  _cmdHits = [];
+  _cmdIndex = 0;
+}
+function openCommandPalette() {
+  $('#cmdOverlay').hidden = false;
+  const input = $('#cmdInput');
+  input.value = '';
+  renderCommandPalette('');
+  setTimeout(() => input.focus(), 20);
+}
+function commandHits(query) {
+  const combined = [...CMD_ACTIONS, ...getSearchHits(query, 16)];
+  if (!query.trim()) return CMD_ACTIONS.slice(0, 10);
+  return combined
+    .map(item => ({ ...item, _score: fuzzyScore(query, `${item.title} ${item.snippet || ''} ${item.text || ''}`) }))
+    .filter(item => item._score > 0)
+    .sort((a, b) => b._score - a._score)
+    .slice(0, 20);
+}
+function updateCmdActiveVisual() {
+  $$('#cmdResults .search-result').forEach((row, idx) => {
+    row.classList.toggle('is-active', idx === _cmdIndex);
+    row.setAttribute('aria-selected', idx === _cmdIndex ? 'true' : 'false');
+  });
+}
+function renderCommandPalette(query) {
+  _cmdHits = commandHits(query);
+  _cmdIndex = 0;
+  renderSearchResults($('#cmdResults'), _cmdHits, 'No commands or matches.', hit => {
+    closeCommandPalette();
+    hit.run?.();
+  });
+  updateCmdActiveVisual();
+}
+$('#cmdInput')?.addEventListener('input', e => renderCommandPalette(e.target.value));
+$('#cmdClose')?.addEventListener('click', closeCommandPalette);
+$('#cmdOverlay')?.addEventListener('click', e => { if (e.target.id === 'cmdOverlay') closeCommandPalette(); });
 document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-    e.preventDefault(); $('#globalSearch').focus(); $('#globalSearch').select();
+    e.preventDefault();
+    if ($('#cmdOverlay').hidden) openCommandPalette();
+    else closeCommandPalette();
+    return;
+  }
+  if ($('#cmdOverlay').hidden) return;
+  if (e.key === 'Escape') { e.preventDefault(); closeCommandPalette(); return; }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!_cmdHits.length) return;
+    _cmdIndex = (_cmdIndex + 1) % _cmdHits.length;
+    updateCmdActiveVisual();
+    return;
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (!_cmdHits.length) return;
+    _cmdIndex = (_cmdIndex - 1 + _cmdHits.length) % _cmdHits.length;
+    updateCmdActiveVisual();
+    return;
+  }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const hit = _cmdHits[_cmdIndex];
+    if (!hit) return;
+    closeCommandPalette();
+    hit.run?.();
   }
 });
 
@@ -2044,6 +2210,56 @@ function eventRow(e, compact) {
   return li;
 }
 
+function formatEventDate(e) {
+  const m = CALENDAR[e.monthIdx] ? CALENDAR[e.monthIdx].name : '?';
+  return `${e.day} ${m}, ${e.year} SE`;
+}
+
+function compareCampaignEvents(a, b) {
+  if (a.year !== b.year) return a.year - b.year;
+  if (a.monthIdx !== b.monthIdx) return a.monthIdx - b.monthIdx;
+  return a.day - b.day;
+}
+
+function generateSessionPrepText() {
+  if (!Array.isArray(state.campaignEvents)) state.campaignEvents = [];
+  const sorted = state.campaignEvents.slice().sort(compareCampaignEvents);
+  const selectedDayKey = `${state.date.year}-${state.date.monthIdx}-${state.date.day}`;
+  const currentLabel = `${state.date.day} ${CALENDAR[state.date.monthIdx].name}, ${state.date.year} SE`;
+  const nowIndex = sorted.findIndex(e => `${e.year}-${e.monthIdx}-${e.day}` >= selectedDayKey);
+  const split = nowIndex === -1 ? sorted.length : nowIndex;
+  const recent = sorted.slice(Math.max(0, split - 3), split);
+  const upcoming = sorted.slice(split, split + 3);
+
+  const notes = (state.notes || '').trim();
+  const notesLine = notes
+    ? notes.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 2).join(' | ')
+    : 'No session notes yet.';
+
+  const lines = [
+    `SESSION PREP — ${currentLabel}`,
+    '',
+    'Recent events:',
+    ...(recent.length
+      ? recent.map((e, i) => `${i + 1}. ${formatEventDate(e)} — ${e.text}`)
+      : ['- None logged yet.']),
+    '',
+    'Upcoming / active threads:',
+    ...(upcoming.length
+      ? upcoming.map((e, i) => `${i + 1}. ${formatEventDate(e)} — ${e.text}`)
+      : ['- None scheduled yet.']),
+    '',
+    'Session notes snapshot:',
+    notesLine,
+    '',
+    'Carryover checklist:',
+    '- [ ] Confirm immediate objective',
+    '- [ ] Check key NPCs / alliances',
+    '- [ ] Decide where to travel next',
+  ];
+  return lines.join('\n');
+}
+
 $('#eventAdd').addEventListener('click', () => {
   const input = $('#eventInput');
   const text = (input.value || '').trim();
@@ -2059,6 +2275,21 @@ $('#eventAdd').addEventListener('click', () => {
 });
 $('#eventInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); $('#eventAdd').click(); }
+});
+$('#sessionPrepGenerate').addEventListener('click', () => {
+  $('#sessionPrepOutput').value = generateSessionPrepText();
+});
+$('#sessionPrepCopy').addEventListener('click', async () => {
+  const output = $('#sessionPrepOutput');
+  if (!output.value.trim()) output.value = generateSessionPrepText();
+  try {
+    await navigator.clipboard.writeText(output.value);
+    alert('Session prep copied to clipboard.');
+  } catch {
+    output.focus();
+    output.select();
+    alert('Copy failed — selected text so you can copy manually.');
+  }
 });
 
 // Patch renderCalendar to also refresh events when the date changes.
