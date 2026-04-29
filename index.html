@@ -505,6 +505,16 @@
     <p class="muted small">Everything you've logged, sorted by in-game date.</p>
     <ul class="event-list" id="eventAllList"></ul>
   </section>
+
+  <section class="card mt-6">
+    <h2 class="card-title">Session Prep</h2>
+    <p class="muted small">Generate a quick pre-session brief from your timeline, notes, and current in-game date.</p>
+    <div class="btn-row mt-4">
+      <button class="btn primary" id="sessionPrepGenerate">Generate Session Prep</button>
+      <button class="btn small" id="sessionPrepCopy">Copy</button>
+    </div>
+    <textarea class="notes-area mt-4" id="sessionPrepOutput" style="min-height: 220px" placeholder="Press “Generate Session Prep” to build your brief." aria-label="Session prep output"></textarea>
+  </section>
 </section>
 
 <!-- ============== PEOPLE (Party/NPCs + Connections in one tab) ============== -->
@@ -695,6 +705,20 @@
 </section>
 
 </main>
+
+<!-- ============== COMMAND PALETTE ============== -->
+<div class="sync-dialog-overlay cmd-overlay" id="cmdOverlay" hidden>
+  <div class="sync-dialog cmd-dialog" role="dialog" aria-labelledby="cmdTitle" aria-modal="true">
+    <div class="sync-header">
+      <h2 id="cmdTitle">Command Palette</h2>
+      <button class="icon-btn" id="cmdClose" aria-label="Close">×</button>
+    </div>
+    <p class="muted small">Jump anywhere or run quick actions. Use ↑/↓ to choose and Enter to run.</p>
+    <label class="sr-only" for="cmdInput">Search commands</label>
+    <input type="search" class="search-input cmd-input" id="cmdInput" placeholder="Type a command or section…" aria-label="Search commands" autocomplete="off" />
+    <div class="cmd-results" id="cmdResults" role="listbox" aria-label="Command results"></div>
+  </div>
+</div>
 
 <!-- ============== SYNC DIALOG ============== -->
 <div class="sync-dialog-overlay" id="syncOverlay" hidden>
